@@ -1,0 +1,567 @@
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#12082e;--bg2:#1e1048;--bg3:#2d1b69;--pink:#ff6ec7;--gold:#f5c518;--lav:#c9a8e8;--lav2:#9b72d0;--white:#f0ebf8;--muted:#9b88c0;--border:rgba(201,168,232,0.18);--border2:rgba(201,168,232,0.35);--radius:10px;--rsm:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--white);font-family:system-ui,-apple-system,sans-serif;font-size:14px}
+.app{max-width:900px;margin:0 auto;padding:12px;padding-bottom:24px}
+.header{display:flex;align-items:center;gap:12px;padding:14px 0 10px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.logo-ring{width:44px;height:44px;border-radius:50%;background:var(--bg3);border:2px solid var(--lav2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;line-height:1}
+.header-title{font-size:18px;font-weight:700;background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.header-sub{font-size:11px;color:var(--muted);letter-spacing:.5px}
+.header-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.btn{padding:7px 13px;border-radius:var(--rsm);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--lav);transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:var(--lav2);color:var(--white)}
+.btn-pink{background:rgba(255,110,199,.15);border-color:rgba(255,110,199,.4);color:var(--pink)}
+.btn-pink:hover{background:rgba(255,110,199,.25)}
+.btn-gold{background:rgba(245,197,24,.15);border-color:rgba(245,197,24,.4);color:var(--gold)}
+.btn-gold:hover{background:rgba(245,197,24,.25)}
+.btn-sm{padding:4px 9px;font-size:11px}
+.upload-zone{border:1.5px dashed var(--lav2);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:14px;cursor:pointer;transition:all .2s;background:rgba(45,27,105,.4)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--pink);background:rgba(255,110,199,.07)}
+.upload-zone input{display:none}
+.upload-icon{font-size:26px;margin-bottom:4px}
+.upload-title{color:var(--lav);font-size:13px;font-weight:600}
+.upload-sub{color:var(--muted);font-size:11px;margin-top:2px}
+.upload-loaded{color:var(--gold);font-size:12px;margin-top:4px;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+@media(max-width:500px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px}
+.stat-n{font-size:22px;font-weight:700;color:var(--gold)}
+.stat-l{font-size:10px;color:var(--muted);margin-top:1px;text-transform:uppercase;letter-spacing:.4px}
+.tabs{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:var(--radius);margin-bottom:12px;overflow-x:auto}
+.tab{padding:7px 14px;border-radius:var(--rsm);font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .15s;white-space:nowrap;flex-shrink:0}
+.tab.active{background:var(--bg3);color:var(--white);border:1px solid var(--lav2)}
+.toolbar{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:140px;position:relative}
+.search-wrap input{width:100%;padding:7px 10px 7px 30px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rsm);color:var(--white);font-size:13px}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-wrap::before{content:"⌕";position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none}
+.toolbar select{padding:7px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rsm);color:var(--white);font-size:12px}
+.count{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.show-dead-wrap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.show-dead-wrap input{accent-color:var(--lav)}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:500px}
+th{background:var(--bg3);padding:8px 10px;text-align:left;font-weight:600;font-size:11px;color:var(--lav);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--white);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(201,168,232,.06)}
+.id-cell{font-family:monospace;font-size:11px;color:var(--lav)}
+.empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px}
+.b-normal{background:rgba(29,158,117,.2);color:#4ee8a8;border:1px solid rgba(29,158,117,.3)}
+.b-risk{background:rgba(245,197,24,.15);color:var(--gold);border:1px solid rgba(245,197,24,.3)}
+.b-grave{background:rgba(180,60,60,.15);color:#f09090;border:1px solid rgba(180,60,60,.3)}
+.b-watch{background:rgba(100,150,255,.15);color:#90b8ff;border:1px solid rgba(100,150,255,.3)}
+.b-stalled{background:rgba(201,168,232,.12);color:var(--lav);border:1px solid var(--border2)}
+.b-contam{background:rgba(255,80,80,.15);color:#ff9090;border:1px solid rgba(255,80,80,.3)}
+.b-gen{background:rgba(255,110,199,.12);color:var(--pink);border:1px solid rgba(255,110,199,.25);font-size:10px}
+.b-f0{background:rgba(201,168,232,.12);color:var(--lav);border:1px solid var(--border)}
+
+/* Modal — fixed, centered, no scroll bleed */
+.overlay{display:none;position:fixed;inset:0;background:rgba(10,4,30,.78);z-index:200;align-items:center;justify-content:center;padding:12px}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);width:100%;max-width:540px;max-height:88vh;overflow-y:auto;padding:18px;position:relative}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.modal-title{font-size:15px;font-weight:700;color:var(--gold)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
+.modal-close:hover{color:var(--white)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:420px){.form-grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:11px;color:var(--lav);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.field input,.field select,.field textarea{padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--white);font-size:13px;width:100%}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted)}
+.field textarea{resize:vertical;min-height:56px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.combo-wrap{position:relative}
+.combo-list{position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--bg2);border:1px solid var(--lav2);border-radius:var(--rsm);z-index:400;max-height:180px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.combo-list.open{display:block}
+.combo-item{padding:7px 10px;cursor:pointer;font-size:12px;color:var(--white)}
+.combo-item:hover,.combo-item.sel{background:var(--bg3);color:var(--pink)}
+.combo-item .id-part{color:var(--lav);font-family:monospace;font-size:11px;margin-right:6px}
+.new-val-notice{font-size:11px;color:var(--gold);margin-top:3px;display:none}
+.gen-suggest{font-size:11px;color:var(--lav);margin-top:3px;min-height:16px}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg3);border:1px solid var(--gold);color:var(--gold);padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;z-index:999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+
+<div class="app">
+  <div class="header">
+    <div class="logo-ring">🍄‍🟫</div>
+    <div class="header-text">
+      <div class="header-title">LoM Lab Organizer</div>
+      <div class="header-sub">Grow · Learn · Cultivate</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-gold" onclick="triggerUpload()">📂 Load file</button>
+      <button class="btn btn-pink" onclick="exportXLSX()">💾 Save file</button>
+      <button class="btn btn-pink" onclick="openAdd()">+ Add</button>
+    </div>
+  </div>
+
+  <div class="upload-zone" id="dropzone" onclick="triggerUpload()" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
+    <input type="file" id="file-input" accept=".xlsx,.xls" onchange="loadFile(this.files[0])">
+    <div class="upload-icon">📋</div>
+    <div class="upload-title" id="upload-title">Upload your lab file to begin</div>
+    <div class="upload-sub" id="upload-sub">Drop .xlsx here or click · edits download as a new file</div>
+    <div class="upload-loaded" id="upload-loaded"></div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('SPO',this)">🟣 Spores</button>
+    <button class="tab" onclick="switchTab('CUL',this)">🧫 Cultures</button>
+    <button class="tab" onclick="switchTab('SPN',this)">🫙 Spawn</button>
+    <button class="tab" onclick="switchTab('SUB',this)">🌱 Substrate</button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input id="search" placeholder="Search ID, species, source…" oninput="renderTable()">
+    </div>
+    <select id="f-loc" onchange="renderTable()"><option value="">All locations</option></select>
+    <select id="f-health" onchange="renderTable()"><option value="">All health</option></select>
+    <label class="show-dead-wrap"><input type="checkbox" id="show-dead" onchange="renderTable()"> Show archived</label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="overlay" id="modal" onclick="overlayClick(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add entry</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid" id="form-fields"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="saveEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm new value modal -->
+<div class="overlay" id="confirm-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">Add to reference list?</div>
+    </div>
+    <div id="confirm-msg" style="color:var(--lav);font-size:13px;line-height:1.6;margin-bottom:8px"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="confirmNo()">No, discard</button>
+      <button class="btn btn-pink" onclick="confirmYes()">Yes, add it</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const DEAD=["To the graveyard","Used up"];
+const DEFAULTS={
+  locations:["Contam Cabin","Cooling in front of hood","Cryo tube storage box","Holding Tank (tote)","Incubation tote","Liquid Culture Shelf","Mini Fridge","Mushroom Tent","Open Air","Spore Binder","Spawn Shelf","To the graveyard","Used up"],
+  health:["Normal","At Risk","Possibly Stalled","Being Watched","Contaminated"],
+  strains:["Agaricus Arvenis","Almond Mushrooms","Antler Reishi","Bear's Head","Bitter Oyster","Black Oyster","Black Poplar","Brown Beech","Chestnut","Cordyceps Militaris","Corn Smut","Enigma","Enoki","Gandalf","Golden Oyster","Grey Dove Oyster","Hericium Abietis - Conifer Lion's Mane","Lingzhi Reishi","Lion's Mane","Melmak","Mystery","Oyster","P.C. 1219","P.C. Golden Teacher","P.C. Koh Samui","P.C. Ghost","P.C. Yeti","P.C. AMAK","P.C. TPB - Thai Pink Buffalo","P.C. APE - Albino Penis Envy","Pearl Oyster","Shiitake","Tarragon Oyster","Turkey Tail"],
+  vendors:["Alan Rockefeller","B4C Giveaway","Christine Fournier","Gift","Grocery Store","Ladies of Mycology Giveaway","Myco Mommas","Personal Spore Print","TMG","Unknown"],
+  containersSPO:["Print","Swab","Syringe"],
+  containersCUL:["2ml Cryo Tube","Flask","Micro Tube Agar","Petri Dish","Quart LC Jar","Slant Tube","Syringe","Ziplock mini"],
+  containersSPN:["750 mil jar","Bag","Pint jar","PP5 soup container"],
+  containersSUB:["Bag","Bucket","Log","Tub"],
+  recipesSPN:["Rye Grain","Millet","Sorghum","Masters Mix","Hardwood Sawdust + Bran"],
+  recipesSUB:["Coco Coir + Vermiculite","Masters Mix","Straw","Hardwood Sawdust + Bran","Horse Manure + Coco Coir"],
+};
+let refs=JSON.parse(JSON.stringify(DEFAULTS));
+
+const SCHEMAS={
+  SPO:{prefix:"SPO",label:"Spore",sheetName:"Spores",
+    cols:["ID","Generation","Container","Source / Vendor","Species","Location","Health","Notes"],
+    editFields:[
+      {key:"Container",type:"combo",refKey:"containersSPO"},
+      {key:"Source / Vendor",type:"combo",refKey:"vendors"},
+      {key:"Species",type:"combo",refKey:"strains"},
+      {key:"Location",type:"combo",refKey:"locations"},
+      {key:"Health",type:"select",refKey:"health"},
+      {key:"Generation",type:"gen"},
+      {key:"Notes",type:"text"},
+    ]},
+  CUL:{prefix:"CUL",label:"Culture",sheetName:"Cultures",
+    cols:["ID","Generation","Container","Inoculated from","Strain / Species","Location","Health","Notes"],
+    editFields:[
+      {key:"Container",type:"combo",refKey:"containersCUL"},
+      {key:"Inoculated from",type:"lineage",sources:["SPO","CUL"]},
+      {key:"Strain / Species",type:"combo",refKey:"strains"},
+      {key:"Location",type:"combo",refKey:"locations"},
+      {key:"Health",type:"select",refKey:"health"},
+      {key:"Generation",type:"gen"},
+      {key:"Notes",type:"text"},
+    ]},
+  SPN:{prefix:"SPN",label:"Spawn",sheetName:"Spawn",
+    cols:["ID","Generation","Container","Inoculated with","Inoculation date","Location","Health","Notes"],
+    editFields:[
+      {key:"Container",type:"combo",refKey:"containersSPN"},
+      {key:"Inoculated with",type:"lineage",sources:["CUL"]},
+      {key:"Recipe",type:"combo",refKey:"recipesSPN"},
+      {key:"Inoculation date",type:"date"},
+      {key:"Location",type:"combo",refKey:"locations"},
+      {key:"Health",type:"select",refKey:"health"},
+      {key:"Generation",type:"gen"},
+      {key:"Notes",type:"text"},
+    ]},
+  SUB:{prefix:"SUB",label:"Substrate",sheetName:"Substrate",
+    cols:["ID","Generation","Container","Inoculated from","Inoculation date","Location","Health","Yield notes","Notes"],
+    editFields:[
+      {key:"Container",type:"combo",refKey:"containersSUB"},
+      {key:"Inoculated from",type:"lineage",sources:["SPN"]},
+      {key:"Recipe / mix",type:"combo",refKey:"recipesSUB"},
+      {key:"Inoculation date",type:"date"},
+      {key:"Location",type:"combo",refKey:"locations"},
+      {key:"Health",type:"select",refKey:"health"},
+      {key:"Generation",type:"gen"},
+      {key:"Yield notes",type:"text"},
+      {key:"Notes",type:"text"},
+    ]},
+};
+
+const db={SPO:[],CUL:[],SPN:[],SUB:[]};
+let currentTab="SPO",editIdx=null,fileLoaded=false;
+let pendingNewValues=[],pendingEntryData=null;
+
+function toast(msg,dur=3200){
+  const el=document.getElementById("toast");
+  el.textContent=msg;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),dur);
+}
+
+function nextId(tab){
+  const prefix=SCHEMAS[tab].prefix;
+  let max=0;
+  db[tab].forEach(r=>{const m=r.id&&r.id.match(/^[A-Z]+-(\d+)/);if(m)max=Math.max(max,parseInt(m[1]));});
+  return prefix+"-"+(max+1);
+}
+function getSpeciesFor(tab,id){
+  const r=db[tab]&&db[tab].find(x=>x.id===id);
+  return r?(r["Species"]||r["Strain / Species"]||""):"";
+}
+function getGen(tab,id){
+  const r=db[tab]&&db[tab].find(x=>x.id===id);
+  return r?(r["Generation"]||"F0"):"F0";
+}
+function inferGen(inocFrom){
+  if(!inocFrom)return"F0";
+  const id=inocFrom.split(" — ")[0].trim();
+  const prefix=id.split("-")[0];
+  return getGen(prefix,id);
+}
+function suggestSubId(parentId){
+  const base=parentId.match(/^([A-Z]+-\d+)/)?.[1];
+  if(!base)return null;
+  const existing=db["CUL"].filter(r=>r.id&&r.id.startsWith(base+"."));
+  if(!existing.length)return base+".1";
+  return base+"."+(Math.max(...existing.map(r=>parseInt(r.id.match(/\.(\d+)$/)?.[1]||0)))+1);
+}
+
+function triggerUpload(){document.getElementById("file-input").click();}
+function onDrag(e,on){e.preventDefault();document.getElementById("dropzone").classList.toggle("drag",on);}
+function onDrop(e){e.preventDefault();onDrag(e,false);if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);}
+
+function loadFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const wb=XLSX.read(e.target.result,{type:"array",cellDates:true});
+    const sm={"Spores":"SPO","Cultures":"CUL","Spawn":"SPN","Substrate":"SUB"};
+    Object.entries(sm).forEach(([sn,tab])=>{
+      if(!wb.SheetNames.includes(sn))return;
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:""});
+      db[tab]=rows.map(r=>({
+        id:r["ID"]||"",
+        "Container":r["Container"]||"",
+        "Source / Vendor":r["Source / Vendor"]||"",
+        "Species":r["Species"]||"",
+        "Strain / Species":r["Strain / Species"]||"",
+        "Inoculated from":r["Inoculated from"]||"",
+        "Inoculated with":r["Inoculated with"]||"",
+        "Recipe":r["Recipe"]||"",
+        "Recipe / mix":r["Recipe / mix"]||"",
+        "Inoculation date":r["Inoculation date"]||"",
+        "Location":r["Location"]||"",
+        "Health":r["Health"]||"",
+        "Generation":r["Generation"]||"F0",
+        "Notes":r["Notes"]||"",
+        "Yield notes":r["Yield notes"]||"",
+      }));
+    });
+    if(wb.SheetNames.includes("Strains")){const rows=XLSX.utils.sheet_to_json(wb.Sheets["Strains"],{defval:""});refs.strains=[...new Set([...DEFAULTS.strains,...rows.map(r=>r["Strain / Variety Name"]||"").filter(Boolean)])];}
+    if(wb.SheetNames.includes("Locations")){const rows=XLSX.utils.sheet_to_json(wb.Sheets["Locations"],{defval:""});refs.locations=[...new Set([...DEFAULTS.locations,...rows.map(r=>r["Location"]||"").filter(Boolean)])];}
+    if(wb.SheetNames.includes("Health")){const rows=XLSX.utils.sheet_to_json(wb.Sheets["Health"],{defval:""});refs.health=[...new Set([...DEFAULTS.health,...rows.map(r=>r["Health Status"]||"").filter(Boolean)])];}
+    if(wb.SheetNames.includes("Vendors")){const rows=XLSX.utils.sheet_to_json(wb.Sheets["Vendors"],{defval:""});refs.vendors=[...new Set([...DEFAULTS.vendors,...rows.map(r=>r["Source / Vendor"]||"").filter(Boolean)])];}
+    if(wb.SheetNames.includes("Containers")){
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets["Containers"],{defval:""});
+      refs.containersCUL=[...new Set([...DEFAULTS.containersCUL,...rows.map(r=>r["Culture"]||"").filter(Boolean)])];
+      refs.containersSPO=[...new Set([...DEFAULTS.containersSPO,...rows.map(r=>r["Spore"]||"").filter(Boolean)])];
+      refs.containersSPN=[...new Set([...DEFAULTS.containersSPN,...rows.map(r=>r["Spawn"]||"").filter(Boolean)])];
+      refs.containersSUB=[...new Set([...DEFAULTS.containersSUB,...rows.map(r=>r["Substrate"]||"").filter(Boolean)])];
+    }
+    fileLoaded=true;
+    document.getElementById("upload-title").textContent="✓ "+file.name;
+    document.getElementById("upload-sub").textContent="Drop a new file to replace · save downloads your updated copy";
+    document.getElementById("upload-loaded").textContent="File loaded — "+db.SPO.length+" spores · "+db.CUL.length+" cultures · "+db.SPN.length+" spawn · "+db.SUB.length+" substrates";
+    refresh();
+    toast("✓ File loaded: "+file.name);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function exportXLSX(){
+  const wb=XLSX.utils.book_new();
+  Object.entries(SCHEMAS).forEach(([tab,schema])=>{
+    const headers=schema.cols;
+    const rows=db[tab].map(r=>headers.map(c=>c==="ID"?r.id:(r[c]||"")));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([headers,...rows]),schema.sheetName);
+  });
+  const strainRows=refs.strains.map(s=>[s,"",""]);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Strain / Variety Name","Optional Latin Name","Source / Vendor"],...strainRows]),"Strains");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Location"],...refs.locations.map(l=>[l])]),"Locations");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Health Status"],...refs.health.map(h=>[h])]),"Health");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Source / Vendor"],...refs.vendors.map(v=>[v])]),"Vendors");
+  const maxC=Math.max(refs.containersCUL.length,refs.containersSPO.length,refs.containersSPN.length,refs.containersSUB.length);
+  const cRows=[];for(let i=0;i<maxC;i++)cRows.push([refs.containersCUL[i]||"",refs.containersSPO[i]||"",refs.containersSPN[i]||"",refs.containersSUB[i]||""]);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Culture","Spore","Spawn","Substrate"],...cRows]),"Containers");
+  const fname="LoM_Lab_Organizer_"+new Date().toISOString().slice(0,10)+".xlsx";
+  XLSX.writeFile(wb,fname);
+  toast("✓ Saved as "+fname+" — this is your new working file");
+}
+
+function refresh(){renderStats();renderFilters();renderTable();}
+
+function switchTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("search").value="";
+  refresh();
+}
+
+function healthBadge(h){
+  if(!h)return"";
+  const m={"Normal":"b-normal","At Risk":"b-risk","To the graveyard":"b-grave","Being Watched":"b-watch","Possibly Stalled":"b-stalled","Contaminated":"b-contam"};
+  return`<span class="badge ${m[h]||"b-stalled"}">${h}</span>`;
+}
+function genBadge(g){
+  if(!g)return"";
+  return`<span class="badge ${g==="F0"?"b-f0":"b-gen"}">${g}</span>`;
+}
+
+function renderStats(){
+  const rows=db[currentTab];
+  const total=rows.length,active=rows.filter(r=>!DEAD.includes(r.Location)).length,atRisk=rows.filter(r=>["At Risk","Being Watched","Possibly Stalled"].includes(r.Health)).length,grave=rows.filter(r=>DEAD.includes(r.Location)).length;
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Total</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--lav)">${active}</div><div class="stat-l">Active</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--gold)">${atRisk}</div><div class="stat-l">Attention</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--muted)">${grave}</div><div class="stat-l">Archived</div></div>`;
+}
+
+function renderFilters(){
+  const rows=db[currentTab];
+  const locs=[...new Set(rows.map(r=>r.Location).filter(Boolean))].sort();
+  const healths=[...new Set(rows.map(r=>r.Health).filter(Boolean))].sort();
+  const locSel=document.getElementById("f-loc"),hSel=document.getElementById("f-health");
+  const curL=locSel.value,curH=hSel.value;
+  locSel.innerHTML='<option value="">All locations</option>'+locs.map(l=>`<option value="${l}"${l===curL?" selected":""}>${l}</option>`).join("");
+  hSel.innerHTML='<option value="">All health</option>'+healths.map(h=>`<option value="${h}"${h===curH?" selected":""}>${h}</option>`).join("");
+}
+
+function renderTable(){
+  const schema=SCHEMAS[currentTab];
+  const showDead=document.getElementById("show-dead").checked;
+  const q=(document.getElementById("search").value||"").toLowerCase();
+  const locF=document.getElementById("f-loc").value,hF=document.getElementById("f-health").value;
+  const showGen=currentTab==="SPO"||currentTab==="CUL";
+  let rows=db[currentTab].filter(r=>{
+    if(!showDead&&DEAD.includes(r.Location))return false;
+    if(q&&!Object.values(r).join(" ").toLowerCase().includes(q))return false;
+    if(locF&&r.Location!==locF)return false;
+    if(hF&&r.Health!==hF)return false;
+    return true;
+  });
+  document.getElementById("count").textContent=rows.length+" records";
+  const cols=schema.cols.filter(c=>showGen?true:c!=="Generation");
+  document.getElementById("thead").innerHTML="<tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"<th style='width:60px'></th></tr>";
+  if(!rows.length){
+    document.getElementById("tbody").innerHTML=`<tr><td colspan="${cols.length+1}" class="empty">${!fileLoaded?"Load a file or add entries to get started":"No records match"}</td></tr>`;
+    return;
+  }
+  document.getElementById("tbody").innerHTML=rows.map(r=>{
+    const idx=db[currentTab].indexOf(r);
+    const cells=cols.map(c=>{
+      if(c==="ID")return`<td class="id-cell">${r.id}</td>`;
+      if(c==="Health")return`<td>${healthBadge(r.Health)}</td>`;
+      if(c==="Generation")return`<td>${genBadge(r.Generation)}</td>`;
+      const v=r[c]||"";return`<td title="${v}">${v}</td>`;
+    }).join("");
+    return`<tr>${cells}<td><button class="btn btn-sm" onclick="openEdit(${idx})">Edit</button></td></tr>`;
+  }).join("");
+}
+
+function openAdd(){
+  editIdx=null;
+  document.getElementById("modal-title").textContent="Add "+SCHEMAS[currentTab].label;
+  document.getElementById("form-fields").innerHTML=buildForm(null);
+  initCombos();
+  document.getElementById("modal").classList.add("open");
+}
+function openEdit(idx){
+  editIdx=idx;
+  const entry=db[currentTab][idx];
+  document.getElementById("modal-title").textContent="Edit "+entry.id;
+  document.getElementById("form-fields").innerHTML=buildForm(entry);
+  initCombos();
+  document.getElementById("modal").classList.add("open");
+}
+function closeModal(){document.getElementById("modal").classList.remove("open");}
+function overlayClick(e){if(e.target===document.getElementById("modal"))closeModal();}
+
+function buildForm(entry){
+  const schema=SCHEMAS[currentTab];
+  return schema.editFields.map(f=>{
+    const val=entry?(entry[f.key]||""):"";
+    const full=["Notes","Yield notes","Strain / Species","Source / Vendor","Inoculated from","Inoculated with","Recipe / mix"].includes(f.key)?"full":"";
+    const fid=f.key.replace(/[\s\/]/g,"-");
+    if(f.type==="combo") return`<div class="field ${full}"><label>${f.key}</label><div class="combo-wrap"><input type="text" id="combo-${fid}" data-refkey="${f.refKey}" value="${val}" placeholder="Type to search…" autocomplete="off" oninput="filterCombo(this)" onfocus="openCombo(this)" onblur="blurCombo(this)"><div class="combo-list" id="clist-${fid}"></div></div><div class="new-val-notice" id="new-${fid}">New — will be added to reference list on save</div></div>`;
+    if(f.type==="lineage") return`<div class="field ${full}"><label>${f.key}</label><div class="combo-wrap"><input type="text" id="lin-${fid}" data-sources="${f.sources.join(',')}" value="${val}" placeholder="Type ID or species…" autocomplete="off" oninput="filterLineage(this)" onfocus="openLineage(this)" onblur="blurCombo(this)"><div class="combo-list" id="llist-${fid}"></div></div><div class="gen-suggest" id="gen-hint"></div></div>`;
+    if(f.type==="select"){const opts=(refs[f.refKey]||[]).map(o=>`<option value="${o}"${val===o?" selected":""}>${o}</option>`).join("");return`<div class="field ${full}"><label>${f.key}</label><select id="sel-${fid}"><option value="">—</option>${opts}</select></div>`;}
+    if(f.type==="gen"){const sug=entry?(entry["Generation"]||"F0"):"F0";return`<div class="field"><label>Generation</label><input type="text" id="gen-input" value="${sug}" placeholder="F0"><div class="gen-suggest" id="gen-auto-hint"></div></div>`;}
+    if(f.type==="date") return`<div class="field"><label>${f.key}</label><input type="date" id="inp-${fid}" value="${val}"></div>`;
+    if(f.type==="text") return`<div class="field ${full}"><label>${f.key}</label><textarea id="inp-${fid}">${val}</textarea></div>`;
+    return"";
+  }).join("");
+}
+
+function getRefList(refKey){return(refs[refKey]||[]).filter(Boolean).sort();}
+
+function filterCombo(inp){
+  const q=inp.value.toLowerCase(),refKey=inp.dataset.refkey;
+  const list=getRefList(refKey);
+  const fid=inp.id.replace("combo-","");
+  const el=document.getElementById("clist-"+fid);
+  const filtered=q?list.filter(v=>v.toLowerCase().includes(q)):list;
+  el.innerHTML=filtered.map(v=>`<div class="combo-item" onmousedown="pickCombo('${inp.id}','${v.replace(/'/g,"\\'")}','${refKey}')">${v}</div>`).join("")||`<div class="combo-item" style="color:var(--muted);cursor:default">No matches — type to create new</div>`;
+  el.classList.add("open");
+  const notice=document.getElementById("new-"+fid);
+  if(notice)notice.style.display=(q&&!list.find(v=>v.toLowerCase()===q))?"block":"none";
+}
+function openCombo(inp){filterCombo(inp);}
+function blurCombo(inp){setTimeout(()=>document.querySelectorAll(".combo-list").forEach(l=>l.classList.remove("open")),200);}
+function pickCombo(inputId,val,refKey){
+  document.getElementById(inputId).value=val;
+  const fid=inputId.replace("combo-","");
+  const n=document.getElementById("new-"+fid);if(n)n.style.display="none";
+  document.querySelectorAll(".combo-list").forEach(l=>l.classList.remove("open"));
+}
+
+function filterLineage(inp){
+  const q=inp.value.toLowerCase(),sources=inp.dataset.sources.split(",");
+  const showDead=document.getElementById("show-dead").checked;
+  const fid=inp.id.replace("lin-","");
+  const el=document.getElementById("llist-"+fid);
+  let items=[];
+  sources.forEach(tab=>{
+    db[tab].forEach(r=>{
+      if(!showDead&&DEAD.includes(r.Location))return;
+      const sp=r["Species"]||r["Strain / Species"]||"";
+      if(!q||r.id.toLowerCase().includes(q)||sp.toLowerCase().includes(q))
+        items.push({id:r.id,sp,dead:DEAD.includes(r.Location),gen:r.Generation||"F0"});
+    });
+  });
+  el.innerHTML=items.slice(0,60).map(it=>{
+    const label=it.id+(it.sp?" — "+it.sp:"");
+    return`<div class="combo-item${it.dead?" dead":""}" onmousedown="pickLineage('${inp.id}','${label.replace(/'/g,"\\'")}','${it.gen}')"><span class="id-part">${it.id}</span>${it.sp}<span class="badge b-f0" style="margin-left:6px;font-size:9px">${it.gen}</span>${it.dead?" (archived)":""}</div>`;
+  }).join("")||`<div class="combo-item" style="color:var(--muted);cursor:default">No matches</div>`;
+  el.classList.add("open");
+}
+function openLineage(inp){filterLineage(inp);}
+function pickLineage(inputId,val,gen){
+  document.getElementById(inputId).value=val;
+  document.querySelectorAll(".combo-list").forEach(l=>l.classList.remove("open"));
+  const genInp=document.getElementById("gen-input");
+  const hint=document.getElementById("gen-auto-hint");
+  if(genInp){genInp.value=gen;if(hint){hint.textContent="Auto-inherited from parent ("+gen+")";}}
+  if(currentTab==="CUL"&&editIdx===null){
+    const id=val.split(" — ")[0].trim();
+    if(id.startsWith("CUL-")){const s=suggestSubId(id);const h=document.getElementById("gen-hint");if(h)h.textContent="Sub-culture ID will be: "+s;}
+  }
+}
+function initCombos(){
+  SCHEMAS[currentTab].editFields.forEach(f=>{
+    if(f.type==="combo"){
+      const el=document.getElementById("clist-"+f.key.replace(/[\s\/]/g,"-"));
+      if(el)el.innerHTML=getRefList(f.refKey).map(v=>`<div class="combo-item" onmousedown="pickCombo('combo-${f.key.replace(/[\s\/]/g,"-")}','${v.replace(/'/g,"\\'")}','${f.refKey}')">${v}</div>`).join("");
+    }
+  });
+}
+
+function saveEntry(){
+  const schema=SCHEMAS[currentTab];
+  const data={};
+  schema.editFields.forEach(f=>{
+    const fid=f.key.replace(/[\s\/]/g,"-");
+    if(f.type==="combo"){const el=document.getElementById("combo-"+fid);data[f.key]=el?el.value:"";}
+    else if(f.type==="lineage"){const el=document.getElementById("lin-"+fid);data[f.key]=el?el.value:"";}
+    else if(f.type==="select"){const el=document.getElementById("sel-"+fid);data[f.key]=el?el.value:"";}
+    else if(f.type==="gen"){const el=document.getElementById("gen-input");data["Generation"]=el?el.value:"F0";}
+    else if(f.type==="date"||f.type==="text"){const el=document.getElementById("inp-"+fid);data[f.key]=el?el.value:"";}
+  });
+  const newVals=[];
+  schema.editFields.forEach(f=>{
+    if(f.type==="combo"&&f.refKey){const v=data[f.key];if(v&&!refs[f.refKey].includes(v))newVals.push({val:v,refKey:f.refKey,label:f.key});}
+  });
+  if(newVals.length){pendingNewValues=newVals;pendingEntryData=data;showConfirm(newVals);return;}
+  commitSave(data);
+}
+
+function showConfirm(newVals){
+  document.getElementById("confirm-msg").innerHTML="Add these new values to your reference lists?<br><br>"+newVals.map(n=>`<b style="color:var(--gold)">"${n.val}"</b> → ${n.label} list`).join("<br>");
+  document.getElementById("confirm-modal").classList.add("open");
+}
+function confirmYes(){
+  pendingNewValues.forEach(n=>{if(!refs[n.refKey].includes(n.val))refs[n.refKey].push(n.val);});
+  document.getElementById("confirm-modal").classList.remove("open");
+  commitSave(pendingEntryData);
+}
+function confirmNo(){document.getElementById("confirm-modal").classList.remove("open");commitSave(pendingEntryData);}
+
+function commitSave(data){
+  if(editIdx===null){
+    let newId;
+    const inoc=data["Inoculated from"]||"";
+    if(currentTab==="CUL"&&inoc.startsWith("CUL-")){
+      newId=suggestSubId(inoc.split(" — ")[0].trim());
+    } else {newId=nextId(currentTab);}
+    data.id=newId;
+    db[currentTab].push(data);
+    toast("✓ "+newId+" added");
+  } else {
+    const existing=db[currentTab][editIdx];
+    data.id=existing.id;
+    db[currentTab][editIdx]=data;
+    toast("✓ "+data.id+" updated");
+  }
+  closeModal();
+  refresh();
+}
+</script>
