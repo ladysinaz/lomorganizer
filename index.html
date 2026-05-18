@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LoM Lab Organizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#0e0620;--bg2:#170d35;--bg3:#231550;--bg4:#2d1b69;--pink:#ff6ec7;--gold:#f5c518;--lav:#c9a8e8;--lav2:#9b72d0;--white:#f0ebf8;--muted:#8a7aaa;--border:rgba(201,168,232,0.13);--border2:rgba(201,168,232,0.30);--r:10px;--rs:6px;--fh:'Rajdhani',sans-serif;--fb:'Nunito',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--white);font-family:var(--fb);font-size:13px;overflow-x:hidden}
+.app{max-width:960px;margin:0 auto;padding:12px}
+/* header */
+.hdr{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.logo{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 40%,var(--bg4),var(--bg));border:1.5px solid var(--lav2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.htitle{font-family:var(--fh);font-size:20px;font-weight:700;background:linear-gradient(100deg,var(--pink),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hsub{font-size:10px;color:var(--muted);letter-spacing:.8px}
+.hact{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+/* buttons */
+.btn{padding:6px 12px;border-radius:var(--rs);font-size:12px;font-weight:700;font-family:var(--fh);cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--lav);transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:var(--lav2);color:var(--white);background:var(--bg4)}
+.btn-p{background:rgba(255,110,199,.1);border-color:rgba(255,110,199,.3);color:var(--pink)}.btn-p:hover{background:rgba(255,110,199,.2)}
+.btn-g{background:rgba(245,197,24,.1);border-color:rgba(245,197,24,.3);color:var(--gold)}.btn-g:hover{background:rgba(245,197,24,.2)}
+.btn-sm{padding:3px 8px;font-size:11px}
+/* upload */
+.upzone{border:1.5px dashed var(--lav2);border-radius:var(--r);padding:12px 16px;text-align:center;margin-bottom:14px;cursor:pointer;background:rgba(35,21,80,.45);transition:all .2s}
+.upzone:hover,.upzone.drag{border-color:var(--pink);background:rgba(255,110,199,.05)}
+.upzone input{display:none}
+.uprow{display:flex;align-items:center;justify-content:center;gap:10px}
+.upicon{font-size:20px}.upmain{font-family:var(--fh);font-size:13px;font-weight:600;color:var(--lav)}
+.upsub{font-size:11px;color:var(--muted)}.uploaded{font-size:11px;color:var(--gold);font-weight:600;margin-top:4px}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px}
+@media(max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px}
+.stn{font-family:var(--fh);font-size:22px;font-weight:700;color:var(--gold);line-height:1}
+.stl{font-size:10px;color:var(--muted);margin-top:1px;text-transform:uppercase;letter-spacing:.4px}
+/* tabs */
+.tabs{display:flex;gap:3px;background:var(--bg2);padding:4px;border-radius:var(--r) var(--r) 0 0;overflow-x:auto;border:1px solid var(--border);border-bottom:none}
+.tab{padding:6px 15px;border-radius:var(--rs);font-family:var(--fh);font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .15s;white-space:nowrap;flex-shrink:0}
+.tab.on{background:var(--bg4);color:var(--white);border:1px solid var(--lav2)}
+.subtabs-wrap{background:var(--bg2);border:1px solid var(--border);border-top:none;padding:5px 7px 7px}
+.subtabs{display:flex;gap:4px;flex-wrap:wrap}
+.stab{padding:3px 11px;border-radius:20px;font-size:11px;font-weight:700;font-family:var(--fh);cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.stab.on{background:var(--bg4);color:var(--lav);border-color:var(--lav2)}
+/* toolbar */
+.toolbar{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap;align-items:center}
+.srch{flex:1;min-width:130px;position:relative}
+.srch input{width:100%;padding:6px 9px 6px 34px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);color:var(--white);font-size:12px;font-family:var(--fb)}
+.srch input::placeholder{color:var(--muted)}
+.srch::before{content:"⌕";position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none}
+.toolbar select{padding:5px 7px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);color:var(--white);font-size:11px;font-family:var(--fb)}
+.cnt{font-size:11px;color:var(--muted);margin-left:auto}
+.arch-wrap{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.arch-wrap input{accent-color:var(--lav)}
+/* table */
+.twrap{border:1px solid var(--border);border-radius:var(--r);background:var(--bg2);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg3);padding:6px 8px;text-align:left;font-family:var(--fh);font-weight:600;font-size:11px;color:var(--lav);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:5px 8px;border-bottom:1px solid var(--border);color:var(--white);vertical-align:middle;white-space:nowrap}
+.tdc{max-width:150px;overflow:hidden;text-overflow:ellipsis}
+tr:last-child td{border-bottom:none}
+tr.dr:hover td{background:rgba(201,168,232,.05)}
+.idc{font-family:monospace;font-size:11px;color:var(--lav)}
+.empty{padding:2rem;text-align:center;color:var(--muted);font-size:12px}
+.acell{white-space:nowrap;width:110px}
+/* expand */
+tr.xrow>td{padding:0;border-bottom:1px solid var(--border)}
+.xi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:9px 12px;background:rgba(14,6,46,.55)}
+.xf{display:flex;flex-direction:column;gap:2px}
+.xl{font-family:var(--fh);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.xv{font-size:12px;color:var(--white)}.xv.mono{font-family:monospace;font-size:11px;color:var(--lav)}.xfull{grid-column:1/-1}
+/* badges */
+.b{display:inline-flex;align-items:center;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--fh);white-space:nowrap}
+.b+.b{margin-left:2px}
+.bn{background:rgba(29,158,117,.18);color:#4ee8a8;border:1px solid rgba(29,158,117,.28)}
+.br{background:rgba(245,197,24,.13);color:var(--gold);border:1px solid rgba(245,197,24,.28)}
+.bg{background:rgba(180,60,60,.13);color:#f09090;border:1px solid rgba(180,60,60,.28)}
+.bw{background:rgba(100,150,255,.13);color:#90b8ff;border:1px solid rgba(100,150,255,.28)}
+.bs{background:rgba(201,168,232,.1);color:var(--lav);border:1px solid var(--border2)}
+.bc{background:rgba(255,80,80,.13);color:#ff9090;border:1px solid rgba(255,80,80,.28)}
+.bgen{background:rgba(255,110,199,.12);color:var(--pink);border:1px solid rgba(255,110,199,.25)}
+.bf0{background:rgba(201,168,232,.1);color:var(--lav);border:1px solid var(--border)}
+.bt{background:rgba(245,197,24,.1);color:var(--gold);border:1px solid rgba(245,197,24,.22)}
+.bty{background:rgba(155,114,208,.14);color:var(--lav2);border:1px solid rgba(155,114,208,.28)}
+/* detail popup */
+.dpop{position:fixed;z-index:500;background:var(--bg2);border:1px solid var(--lav2);border-radius:var(--r);padding:14px 16px;width:310px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.7);display:none}
+.dpop.on{display:block}
+.dph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+.dpid{font-family:monospace;font-size:15px;color:var(--gold);font-weight:700}
+.dpx{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0;line-height:1}.dpx:hover{color:var(--white)}
+.dpst{font-size:12px;color:var(--lav);margin-bottom:8px}
+.dpbadges{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:10px}
+.dpg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.dpf{display:flex;flex-direction:column;gap:2px}.dpf.full{grid-column:1/-1}
+.dpl{font-family:var(--fh);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.dpv{font-size:11px;color:var(--white);word-break:break-word}.dpv.mono{font-family:monospace;color:var(--lav)}.dpv.mt{color:var(--muted);font-style:italic}
+.dplin{display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin-bottom:10px;margin-top:3px}
+.dplid{font-family:monospace;font-size:10px;color:var(--lav2);cursor:pointer;text-decoration:underline dotted}.dplid:hover{color:var(--pink)}
+.dplcur{font-family:monospace;font-size:10px;color:var(--gold);font-weight:700}
+.dplarr{color:rgba(58,42,90,1);font-size:10px}
+.dpnotes{font-size:11px;color:var(--white);background:rgba(14,6,46,.5);border-radius:var(--rs);padding:6px 8px;margin-bottom:10px;word-break:break-word}
+.dpfoot{display:flex;gap:6px;padding-top:8px;border-top:1px solid var(--border)}
+.dbdrop{display:none;position:fixed;inset:0;z-index:499}.dbdrop.on{display:block}
+/* modal */
+.mwrap{display:none;position:fixed;inset:0;z-index:300;background:rgba(8,2,22,.82)}.mwrap.on{display:block}
+.modal{position:absolute;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:calc(100% - 24px);max-width:560px;max-height:86vh;overflow-y:auto;padding:16px}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mtitle{font-family:var(--fh);font-size:16px;font-weight:700;color:var(--gold)}
+.mclose{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 3px}.mclose:hover{color:var(--white)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:400px){.fg{grid-template-columns:1fr}}
+.fi{display:flex;flex-direction:column;gap:5px}.fi.full{grid-column:1/-1}
+.fi label{font-family:var(--fh);font-size:10px;color:var(--lav);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.mfoot{display:flex;justify-content:flex-end;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.fhint{font-size:10px;color:var(--lav);margin-top:2px}
+.idprev{font-family:monospace;font-size:13px;color:var(--gold);background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:7px 9px}
+/* type pills */
+.trow{display:flex;gap:6px;flex-wrap:wrap;grid-column:1/-1;margin-bottom:2px}
+.trow-lbl{font-family:var(--fh);font-size:10px;color:var(--lav);text-transform:uppercase;letter-spacing:.5px;display:block;width:100%;margin-bottom:4px}
+.tpill{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:700;font-family:var(--fh);cursor:pointer;border:1.5px solid var(--border2);background:transparent;color:var(--muted);transition:all .15s}
+.tpill:hover{border-color:var(--lav);color:var(--lav)}
+.tpill.on{background:var(--bg4);color:var(--white);border-color:var(--gold)}
+.sdiv{grid-column:1/-1;border-top:1px solid var(--border);margin:3px 0}
+/* combo */
+.cbox{position:relative}
+.cdisp{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);cursor:pointer;min-height:34px;user-select:none}
+.cdisp:hover{border-color:var(--lav2)}
+.cval{flex:1;padding:7px 9px;font-size:12px;font-family:var(--fb);color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cval.mt{color:var(--muted)}
+.carr{padding:0 10px;color:var(--muted);font-size:11px;flex-shrink:0}
+.cdrop{display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--lav2);border-top:none;border-radius:0 0 var(--rs) var(--rs);z-index:900;max-height:210px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.7)}
+.cdrop.on{display:block}
+.csearch{width:100%;padding:6px 9px;background:var(--bg3);border:none;border-bottom:1px solid var(--border2);color:var(--white);font-size:12px;font-family:var(--fb);outline:none}
+.csearch::placeholder{color:var(--muted)}
+.copt{padding:8px 11px;cursor:pointer;font-size:12px;color:var(--white);display:flex;align-items:center;gap:6px}
+.copt:hover{background:var(--bg3);color:var(--pink)}
+.copt.cur{background:rgba(245,197,24,.07);color:var(--gold)}
+.cempty{padding:8px 11px;font-size:12px;color:var(--muted);font-style:italic}
+.liid{font-family:monospace;font-size:10px;color:var(--lav2);flex-shrink:0}
+/* origin block */
+.oblock{grid-column:1/-1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:10px 12px}
+.otog{display:flex;gap:4px;margin-bottom:10px}
+.obtn{flex:1;padding:5px 8px;border-radius:var(--rs);font-size:11px;font-weight:700;font-family:var(--fh);cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted);transition:all .15s;text-align:center}
+.obtn.on{background:var(--bg4);color:var(--white);border-color:var(--lav2)}
+.opanel{display:none}.opanel.on{display:block}
+/* health pills */
+.hpills{display:flex;flex-wrap:wrap;gap:5px;grid-column:1/-1}
+.hpill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--fh);cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted);transition:all .15s;user-select:none}
+.hpill:hover{border-color:var(--lav);color:var(--lav)}
+.hpill.on{background:var(--bg4);color:var(--white);border-color:var(--gold)}
+/* plain inputs */
+.pi{padding:7px 9px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--white);font-size:12px;font-family:var(--fb);width:100%}
+.pi::placeholder{color:var(--muted)}
+/* discard */
+.discpop{position:fixed;z-index:600;background:var(--bg2);border:1px solid rgba(255,110,199,.4);border-radius:var(--r);padding:18px 20px;width:280px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.75);display:none;left:50%;transform:translateX(-50%)}
+.disctitle{font-family:var(--fh);font-size:15px;font-weight:700;color:var(--pink);margin-bottom:8px}
+.discmsg{font-size:12px;color:var(--lav);line-height:1.6;margin-bottom:14px}
+.discbtns{display:flex;gap:8px}.discbtns .btn{flex:1;text-align:center}
+/* map popup */
+.mappop{position:fixed;z-index:600;background:var(--bg2);border:1px solid var(--lav2);border-radius:var(--r);padding:16px;width:320px;max-width:94vw;box-shadow:0 8px 32px rgba(0,0,0,.75);display:none}
+.mappop.on{display:block}
+.mapcol{font-family:monospace;font-size:14px;color:var(--gold);font-weight:700;margin-bottom:4px}
+.mapsamp{font-size:11px;color:var(--muted);margin-bottom:12px;font-style:italic}
+.maplbl{font-family:var(--fh);font-size:10px;color:var(--lav);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.mapopts{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;margin-bottom:12px}
+.mapopt{padding:6px 10px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg3);color:var(--white);font-size:12px;cursor:pointer;text-align:left;font-family:var(--fb)}
+.mapopt:hover{border-color:var(--lav2);background:var(--bg4);color:var(--lav)}
+.mapskip{color:var(--muted);border-style:dashed}
+.mapprog{font-size:10px;color:var(--muted);margin-bottom:8px}
+/* toast */
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(50px);background:var(--bg4);border:1px solid var(--gold);color:var(--gold);padding:8px 16px;border-radius:var(--r);font-family:var(--fh);font-size:12px;font-weight:600;z-index:999;transition:transform .25s,opacity .25s;opacity:0;pointer-events:none;white-space:nowrap}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <div class="logo">🍄‍🟫</div>
+    <div><div class="htitle">LoM Lab Organizer</div><div class="hsub">GROW · LEARN · CULTIVATE</div></div>
+    <div class="hact">
+      <button class="btn btn-g" id="btn-load">📂 Load</button>
+      <button class="btn btn-p" id="btn-save">💾 Save</button>
+      <button class="btn btn-p" id="btn-add">+ Add</button>
+    </div>
+  </div>
+  <div class="upzone" id="upzone">
+    <input type="file" id="file-in" accept=".xlsx,.xls">
+    <div class="uprow"><span class="upicon">📋</span><div><div class="upmain" id="up-title">Upload your lab file to begin</div><div class="upsub" id="up-sub">Drop .xlsx here or click · edits download as a new file</div></div></div>
+    <div class="uploaded" id="up-loaded"></div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="tabs" id="main-tabs">
+    <button class="tab on" data-tab="SPO">🟣 Spores</button>
+    <button class="tab" data-tab="CUL">🧫 Cultures</button>
+    <button class="tab" data-tab="SPN">🫙 Spawn</button>
+    <button class="tab" data-tab="SUB">🌱 Substrate</button>
+  </div>
+  <div class="subtabs-wrap" id="subtabs-wrap" style="display:none">
+    <div class="subtabs" id="subtabs">
+      <button class="stab on" data-sub="ALL">All</button>
+      <button class="stab" data-sub="AGR">AGR · Agar</button>
+      <button class="stab" data-sub="LC">LC · Liquid Culture</button>
+      <button class="stab" data-sub="LI">LI · Liquid Inoculant</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="srch"><input id="srch" placeholder="Search ID, species, source…"></div>
+    <select id="fl-loc"><option value="">All locations</option></select>
+    <select id="fl-hlth"><option value="">All health</option></select>
+    <label class="arch-wrap"><input type="checkbox" id="show-arch"> Archived</label>
+    <button class="btn btn-sm" id="expand-btn">⊞ Expand all</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div class="twrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+</div>
+
+<!-- Detail popup -->
+<div class="dbdrop" id="dbdrop"></div>
+<div class="dpop" id="dpop">
+  <div class="dph"><div><div class="dpid" id="dp-id"></div><div class="dpst" id="dp-st"></div></div><button class="dpx" id="dp-close">✕</button></div>
+  <div class="dpbadges" id="dp-badges"></div>
+  <div id="dp-body"></div>
+  <div class="dpfoot"><button class="btn btn-g btn-sm" id="dp-edit">Edit</button><button class="btn btn-sm" id="dp-close2">Close</button></div>
+</div>
+
+<!-- Map popup -->
+<div class="mappop" id="mappop">
+  <div class="mapprog" id="map-prog"></div>
+  <div class="mapcol" id="map-col"></div>
+  <div class="mapsamp" id="map-samp"></div>
+  <div class="maplbl">Map this column to:</div>
+  <div class="mapopts" id="map-opts"></div>
+</div>
+
+<!-- Add/Edit modal -->
+<div class="mwrap" id="modal">
+  <div class="modal" id="modal-box">
+    <div class="mhdr"><div class="mtitle" id="modal-title">Add entry</div><button class="mclose" id="modal-close">✕</button></div>
+    <div class="fg" id="form-fields"></div>
+    <div class="mfoot"><button class="btn" id="modal-cancel">Cancel</button><button class="btn btn-g" id="modal-save">Save</button></div>
+  </div>
+</div>
+
+<!-- Discard popup -->
+<div class="discpop" id="discpop">
+  <div class="disctitle">Discard changes?</div>
+  <div class="discmsg">You'll lose any unsaved information in this form.</div>
+  <div class="discbtns">
+    <button class="btn btn-p" id="disc-yes">Yes, discard</button>
+    <button class="btn" id="disc-no">Keep editing</button>
+  </div>
+</div>
+
+<!-- New-value confirm modal -->
+<div class="mwrap" id="conf-modal">
+  <div class="modal" id="conf-box" style="max-width:360px">
+    <div class="mhdr"><div class="mtitle">Add to reference list?</div></div>
+    <div id="conf-msg" style="color:var(--lav);font-size:12px;line-height:1.7"></div>
+    <div class="mfoot"><button class="btn" id="conf-skip">Skip</button><button class="btn btn-p" id="conf-yes">Yes, add it</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════
+const DEAD = ['To the graveyard','Used up'];
+const HEALTH = ['Normal','At Risk','Possibly Stalled','Being Watched','Contaminated'];
+const DEF = {
+  locations:['Contam Cabin','Cooling in front of hood','Cryo tube storage box','Holding Tank (tote)','Incubation tote','Liquid Culture Shelf','Mini Fridge','Mushroom Tent','Open Air','Spore Binder','Spawn Shelf','To the graveyard','Used up'],
+  health:HEALTH,
+  strains:["Agaricus Arvenis","Almond Mushrooms","Antler Reishi","Bear's Head","Bitter Oyster","Black Oyster","Black Poplar","Brown Beech","Chestnut","Cordyceps Militaris","Corn Smut","Enigma","Enoki","Gandalf","Golden Oyster","Grey Dove Oyster","Hericium Abietis - Conifer Lion's Mane","Lingzhi Reishi","Lion's Mane","Melmak","Mystery","Oyster","P.C. 1219","P.C. Golden Teacher","P.C. Koh Samui","P.C. Ghost","P.C. Yeti","P.C. AMAK","P.C. TPB - Thai Pink Buffalo","P.C. APE - Albino Penis Envy","Pearl Oyster","Shiitake","Tarragon Oyster","Turkey Tail"],
+  vendors:['Alan Rockefeller','B4C Giveaway','Christine Fournier','Gift','Grocery Store','Ladies of Mycology Giveaway','Myco Mommas','Personal Spore Print','TMG','Unknown'],
+  cloneSources:['Grocery Store','Wild Foraged','Personal Harvest'],
+  containersSPO:['Print','Swab','Syringe'],
+  containersCUL:['Petri Dish','Slant Tube','Agar Wedge','Quart LC Jar','Flask','2ml Cryo Tube','Syringe','Ziplock mini'],
+  containersSPN:['750 mil jar','Bag','Pint jar','PP5 soup container'],
+  containersSUB:['Bag','Bucket','Log','Tub'],
+  recipesSPN:['Rye Grain','Millet','Sorghum','Masters Mix','Hardwood Sawdust + Bran'],
+  recipesSUB:['Coco Coir + Vermiculite','Masters Mix','Straw','Hardwood Sawdust + Bran','Horse Manure + Coco Coir']
+};
+let refs = JSON.parse(JSON.stringify(DEF));
+const db = {SPO:[],CUL:[],SPN:[],SUB:[]};
+let curTab = 'SPO', curSub = 'ALL', expandAll = false, fileLoaded = false;
+let sessionMaps = {}, mapQueue = [], mapRaw = {}, mapCb = null;
+
+const SHEETF = {
+  Spores:['ID','Container','Source / Vendor','Inoculated from','Species','Location','Health','Generation','Notes'],
+  Cultures:['ID','Culture Type','AGR Type','Clone Source','Iso Letter','Container','Inoculated from','Source / Vendor','Strain / Species','Location','Health','Generation','Transfer #','Notes'],
+  Spawn:['ID','Container','Recipe','Inoculated with','Source / Vendor','Inoculation date','Location','Health','Generation','Notes'],
+  Substrate:['ID','Container','Recipe / mix','Inoculated from','Source / Vendor','Inoculation date','Location','Health','Generation','Yield notes','Notes']
+};
+
+// ═══════════════════════════════════════════════════════
+// FORM STATE — one object, seeded fresh each open
+// ═══════════════════════════════════════════════════════
+let FS = {};          // current form field values
+let editObj = null;   // direct reference to db record (null = adding new)
+let editTabKey = '';  // 'SPO','CUL','SPN','SUB'
+let culType = 'AGR', agrDet = 'new', originMode = 'inventory';
+let pendingVals = [], pendingData = null;
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function h(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg,ms=3000){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),ms); }
+function getRow(id){ for(const t of['SPO','CUL','SPN','SUB']){ const r=(t==='CUL'?db.CUL:db[t]).find(x=>x.id===id); if(r)return{tab:t,row:r}; } return null; }
+function getTNum(id){ const f=getRow(id); return f?parseInt(f.row.tNum||0):0; }
+function nextCUL(pfx){ let m=0; db.CUL.forEach(r=>{ if((r.culType||'AGR')===pfx){ const x=r.id&&r.id.match(/^[A-Z]+-(\d+)/); if(x)m=Math.max(m,parseInt(x[1])); } }); return pfx+'-'+(m+1); }
+function nextId(pfx){ let m=0; (db[pfx]||[]).forEach(r=>{ const x=r.id&&r.id.match(/^[A-Z]+-(\d+)/); if(x)m=Math.max(m,parseInt(x[1])); }); return pfx+'-'+(m+1); }
+function suggestLC(pid){ const b=pid.match(/^LC-(\d+)/)?.[1]; if(!b)return nextCUL('LC'); const ex=db.CUL.filter(r=>r.id&&r.id.match(new RegExp('^LC-'+b+'\\.\\d+$'))); return ex.length?'LC-'+b+'.'+(Math.max(...ex.map(r=>parseInt(r.id.split('.')[1]||0)))+1):'LC-'+b+'.1'; }
+function detectType(id){ if(id.startsWith('AGR'))return'AGR'; if(id.startsWith('LC'))return'LC'; if(id.startsWith('LI'))return'LI'; return'AGR'; }
+function buildChain(id,d=0){ if(d>15)return[]; const f=getRow(id); if(!f)return[{id,ok:false}]; const p=(f.row['Inoculated from']||f.row['Inoculated with']||'').split(' — ')[0].trim(); return[...(p?buildChain(p,d+1):[]),{id,ok:true,tab:f.tab}]; }
+function posModal(el,ev){ const mh=el.offsetHeight||400,vh=window.innerHeight; let y=ev?ev.clientY+16:vh*0.15; if(y+mh>vh-16)y=ev?Math.max(16,ev.clientY-mh-16):16; if(y<16)y=16; el.style.top=y+'px'; }
+
+// ═══════════════════════════════════════════════════════
+// COMBO ENGINE — open/close/populate/pick
+// All picks write to FS immediately. Displays synced after DOM render.
+// ═══════════════════════════════════════════════════════
+let openCbo = null;
+
+function cOpen(id){
+  if(openCbo && openCbo!==id) cClose(openCbo);
+  openCbo=id;
+  const dd=document.getElementById('dd-'+id);
+  if(!dd)return;
+  dd.classList.add('on');
+  const s=document.getElementById('cs-'+id);
+  if(s){s.value='';s.focus();}
+  cFill(id,'');
+}
+function cClose(id){
+  const dd=document.getElementById('dd-'+id);
+  if(dd)dd.classList.remove('on');
+  if(openCbo===id)openCbo=null;
+}
+function cToggle(id){ openCbo===id ? cClose(id) : cOpen(id); }
+
+function cFill(id,q){
+  const dd=document.getElementById('dd-'+id);
+  if(!dd)return;
+  const inner=dd.querySelector('.cdrop-inner');
+  if(!inner)return;
+  const type=dd.dataset.type, cur=FS[id]||'';
+
+  if(type==='lineage'){
+    const srcs=(dd.dataset.sources||'').split(',');
+    const arch=document.getElementById('show-arch').checked;
+    let items=[];
+    ['SPO','CUL','SPN','SUB'].forEach(tab=>{
+      (tab==='CUL'?db.CUL:db[tab]).forEach(r=>{
+        const rt=r.culType||'AGR';
+        const ok=tab==='CUL'?srcs.some(s=>s===rt||s==='CUL'):srcs.includes(tab);
+        if(!ok)return;
+        if(!arch&&DEAD.includes(r.Location))return;
+        const sp=r.Species||r['Strain / Species']||r.culStrain||'';
+        if(!q||r.id.toLowerCase().includes(q)||sp.toLowerCase().includes(q))
+          items.push({id:r.id,sp,dead:DEAD.includes(r.Location),gen:r.Generation||'F0',tNum:r.tNum||0});
+      });
+    });
+    if(!items.length){inner.innerHTML='<div class="cempty">No matches</div>';return;}
+    inner.innerHTML = items.slice(0,80).map(it=>{
+      const lbl=it.id+(it.sp?' — '+it.sp:'');
+      const sel=cur&&(cur===lbl||cur.startsWith(it.id+' —')||cur===it.id);
+      return `<div class="copt${sel?' cur':''}" style="${it.dead?'opacity:.55':''}" data-action="lpick" data-fid="${id}" data-lbl="${h(lbl)}" data-gen="${h(it.gen)}" data-tnum="${it.tNum}" data-pid="${h(it.id)}">
+        <span class="liid">${h(it.id)}</span><span>${h(it.sp)}</span>
+        <span class="b bf0" style="font-size:9px;margin-left:auto">${h(it.gen)}</span>
+        ${it.tNum?`<span class="b bt" style="font-size:9px">T${it.tNum}</span>`:''}
+      </div>`;
+    }).join('');
+  } else {
+    const rk=dd.dataset.rk;
+    const list=(refs[rk]||[]).filter(Boolean).sort();
+    const filt=q?list.filter(v=>v.toLowerCase().includes(q)):list;
+    if(!filt.length){inner.innerHTML='<div class="cempty">No matches — type to add new</div>';return;}
+    inner.innerHTML = filt.map(v=>`<div class="copt${v===cur?' cur':''}" data-action="rpick" data-fid="${id}" data-val="${h(v)}">${h(v)}</div>`).join('');
+  }
+}
+
+function cSyncDisplay(id){
+  const span=document.getElementById('cv-'+id);
+  if(!span)return;
+  const val=FS[id]||'';
+  span.textContent=val||'Select…';
+  span.className='cval'+(val?'':' mt');
+}
+function cSyncAll(){ document.querySelectorAll('.cbox[data-fid]').forEach(b=>cSyncDisplay(b.dataset.fid)); }
+
+function mkCombo(id,rk){ return `<div class="cbox" data-fid="${id}" data-action="ctog" data-cid="${id}"><div class="cdisp"><span class="cval mt" id="cv-${id}">Select…</span><span class="carr">▾</span></div><div class="cdrop" id="dd-${id}" data-type="ref" data-rk="${rk}"><input class="csearch" id="cs-${id}" placeholder="Type to filter…" data-action="csearch" data-cid="${id}"><div class="cdrop-inner"></div></div></div>`; }
+function mkLineage(id,srcs){ return `<div class="cbox" data-fid="${id}" data-action="ctog" data-cid="${id}"><div class="cdisp"><span class="cval mt" id="cv-${id}">Select…</span><span class="carr">▾</span></div><div class="cdrop" id="dd-${id}" data-type="lineage" data-sources="${srcs.join(',')}"><input class="csearch" id="cs-${id}" placeholder="Type ID or species…" data-action="csearch" data-cid="${id}"><div class="cdrop-inner"></div></div></div>`; }
+
+// ═══════════════════════════════════════════════════════
+// EVENT DELEGATION — one listener handles everything
+// ═══════════════════════════════════════════════════════
+let lastEv = null;
+document.addEventListener('click', e=>{
+  lastEv=e;
+  const el = e.target;
+  const action = el.dataset.action || el.closest('[data-action]')?.dataset.action;
+  const node = el.dataset.action ? el : el.closest('[data-action]');
+
+  // Close open combo if clicking outside
+  if(openCbo && !el.closest('.cbox')) cClose(openCbo);
+
+  if(!action||!node) return;
+
+  switch(action){
+    // Combo
+    case 'ctog': { e.stopPropagation(); cToggle(node.dataset.cid); break; }
+    case 'rpick': {
+      const id=node.dataset.fid, val=node.dataset.val;
+      FS[id]=val; cSyncDisplay(id); cClose(id); updPrev();
+      break;
+    }
+    case 'lpick': {
+      const id=node.dataset.fid;
+      const lbl=node.dataset.lbl, gen=node.dataset.gen;
+      const tNum=parseInt(node.dataset.tnum||0), pid=node.dataset.pid;
+      FS[id]=lbl; cSyncDisplay(id); cClose(id);
+      // gen
+      FS['f-gen']=gen;
+      const gi=document.getElementById('pi-f-gen'); if(gi)gi.value=gen;
+      const gh=document.getElementById('gh-f-gen'); if(gh)gh.textContent='Auto-inherited: '+gen+' (override if needed)';
+      // T#
+      const sugT = pid.startsWith('AGR-') ? getTNum(pid)+1 : 0;
+      FS['f-tnum']=String(sugT);
+      const ti=document.getElementById('pi-f-tnum'); if(ti)ti.value=sugT;
+      const th=document.getElementById('th-f-tnum'); if(th)th.textContent=sugT===0?'T0 — first plate from this source':'Auto-suggested: T'+sugT;
+      updPrev();
+      break;
+    }
+    // Table
+    case 'edit': { openEdit(node.dataset.tab, node.dataset.id, e); break; }
+    case 'detail': { openDetail(e, node.dataset.tab, node.dataset.id); break; }
+    // Detail popup
+    case 'dp-close': { closeDetail(); break; }
+    case 'dp-edit': { if(detailRec){ closeDetail(); setTimeout(()=>openEdit(detailRec.tab,detailRec.id,lastEv),80); } break; }
+    case 'dp-jump': { closeDetail(); jumpTo(node.dataset.id); break; }
+    // Tabs
+    case 'mtab': { switchMain(node.dataset.tab, node); break; }
+    case 'stab': { switchSub(node.dataset.sub, node); break; }
+    // Type pills
+    case 'cultype': { setCulType(node.dataset.t, node); break; }
+    case 'agrdet': { setAgrDet(node.dataset.d, node); break; }
+    // Origin toggle
+    case 'origin': { setOrigin(node.dataset.mode); break; }
+    // Health
+    case 'health': { setHealth(node.dataset.val); break; }
+    // Modal buttons
+    case 'modal-close': case 'modal-cancel': { reqClose(); break; }
+    case 'modal-save': { saveEntry(); break; }
+    // Discard
+    case 'disc-yes': { doDiscard(); break; }
+    case 'disc-no': { document.getElementById('discpop').style.display='none'; break; }
+    // Confirm new val
+    case 'conf-yes': { confYes(); break; }
+    case 'conf-skip': { confSkip(); break; }
+    // Expand
+    case 'expand': { toggleExpand(); break; }
+    // Upload/save/add
+    case 'btn-load': { document.getElementById('file-in').click(); break; }
+    case 'btn-save': { exportXLSX(); break; }
+    case 'btn-add': { openAdd(e); break; }
+  }
+}, true);
+
+// Close combo on input (not click) for search boxes
+document.addEventListener('input', e=>{
+  const node = e.target.dataset.action==='csearch' ? e.target : e.target.closest('[data-action="csearch"]');
+  if(node){
+    const cid=node.dataset.cid;
+    const q=node.value.toLowerCase();
+    cFill(cid, q);
+    // Always write the typed value to FS so new values are captured even without picking
+    // If the user picks from the list, rpick/lpick will overwrite this cleanly
+    const dd=document.getElementById('dd-'+cid);
+    if(dd && dd.dataset.type==='ref'){
+      FS[cid]=node.value;
+      cSyncDisplay(cid);
+    }
+  }
+}, true);
+
+// Modal backdrop click
+document.getElementById('modal').addEventListener('click', e=>{
+  if(e.target===document.getElementById('modal')) reqClose();
+});
+
+// Close detail on backdrop
+document.getElementById('dbdrop').addEventListener('click', closeDetail);
+
+// ═══════════════════════════════════════════════════════
+// UPLOAD / LOAD
+// ═══════════════════════════════════════════════════════
+document.getElementById('upzone').addEventListener('click',()=>document.getElementById('file-in').click());
+document.getElementById('upzone').addEventListener('dragover',e=>{e.preventDefault();document.getElementById('upzone').classList.add('drag');});
+document.getElementById('upzone').addEventListener('dragleave',()=>document.getElementById('upzone').classList.remove('drag'));
+document.getElementById('upzone').addEventListener('drop',e=>{e.preventDefault();document.getElementById('upzone').classList.remove('drag');if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);});
+document.getElementById('file-in').addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0]);});
+
+function loadFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+    const snm={Spores:'SPO',Spawn:'SPN',Substrate:'SUB',Cultures:'CUL'};
+    mapRaw={};const unk=[];
+    wb.SheetNames.forEach(sn=>{
+      if(!snm[sn])return;
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:''});
+      mapRaw[sn]=rows;
+      const kf=SHEETF[sn]||[];
+      if(rows.length){Object.keys(rows[0]).forEach(col=>{
+        const key=sn+':'+col;
+        if(kf.includes(col)||sessionMaps[key]!==undefined)return;
+        const samps=[...new Set(rows.slice(0,20).map(r=>String(r[col]||'')).filter(Boolean))].slice(0,3);
+        unk.push({sheet:sn,col,samps,key});
+      });}
+    });
+    if(unk.length){mapQueue=[...unk];mapCb=()=>finLoad(wb);showMap();}
+    else finLoad(wb);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showMap(){
+  if(!mapQueue.length){
+    document.getElementById('mappop').classList.remove('on');
+    if(mapCb)mapCb();
+    return;
+  }
+  const{sheet,col,samps,key}=mapQueue[0];
+  document.getElementById('map-prog').textContent=`${mapQueue.length} unrecognized column${mapQueue.length>1?'s':''} remaining`;
+  document.getElementById('map-col').textContent=`"${col}" (from ${sheet})`;
+  document.getElementById('map-samp').textContent=samps.length?`e.g. ${samps.join(', ')}`:'(no sample values)';
+  const fields=(SHEETF[sheet]||[]).filter(f=>f!=='ID');
+  document.getElementById('map-opts').innerHTML=
+    fields.map(f=>`<button class="mapopt" onclick="applyMap('${key.replace(/'/g,"\\'")}','${f.replace(/'/g,"\\'")}'')">${f}</button>`).join('')+
+    `<button class="mapopt mapskip" onclick="applyMap('${key.replace(/'/g,"\\'")}',null)">Skip / Ignore</button>`;
+  const pop=document.getElementById('mappop');
+  pop.style.display='block';pop.classList.add('on');
+  const pw=320,vw=window.innerWidth,vh=window.innerHeight;
+  pop.style.left=Math.max(12,(vw-pw)/2)+'px';
+  requestAnimationFrame(()=>{pop.style.top=Math.max(12,(vh-pop.offsetHeight)/2)+'px';});
+}
+function applyMap(key,field){sessionMaps[key]=field;mapQueue.shift();showMap();}
+
+function finLoad(wb){
+  function bmap(sn){const m={};if(!mapRaw[sn]||!mapRaw[sn].length)return m;Object.keys(mapRaw[sn][0]).forEach(col=>{const k=sn+':'+col;if(sessionMaps[k]!==undefined){if(sessionMaps[k])m[col]=sessionMaps[k];}else m[col]=col;});return m;}
+  function mrow(raw,cmap,fm){const inv={};Object.entries(cmap).forEach(([c,t])=>{inv[t]=c;});const out={};Object.entries(fm).forEach(([ok,tf])=>{const rc=inv[tf]||tf;out[ok]=String(raw[rc]||raw[tf]||'');});return out;}
+  if(mapRaw.Spores)db.SPO=mapRaw.Spores.map(r=>mrow(r,bmap('Spores'),{id:'ID',Container:'Container','Source / Vendor':'Source / Vendor','Inoculated from':'Inoculated from',Species:'Species',Location:'Location',Health:'Health',Generation:'Generation',Notes:'Notes'}));
+  if(mapRaw.Cultures)db.CUL=mapRaw.Cultures.map(r=>{const m=mrow(r,bmap('Cultures'),{id:'ID',culType:'Culture Type',culStrain:'Strain / Species','Inoculated from':'Inoculated from','Source / Vendor':'Source / Vendor',Container:'Container',Location:'Location',Health:'Health',Generation:'Generation',tNum:'Transfer #',agrTypeDetail:'AGR Type',cloneSource:'Clone Source',isoLetter:'Iso Letter',Notes:'Notes'});m.culType=m.culType||detectType(m.id||'');m.tNum=parseInt(m.tNum||0);m.agrTypeDetail=m.agrTypeDetail||'new';return m;});
+  if(mapRaw.Spawn)db.SPN=mapRaw.Spawn.map(r=>mrow(r,bmap('Spawn'),{id:'ID',Container:'Container',Recipe:'Recipe','Inoculated with':'Inoculated with','Source / Vendor':'Source / Vendor','Inoculation date':'Inoculation date',Location:'Location',Health:'Health',Generation:'Generation',Notes:'Notes'}));
+  if(mapRaw.Substrate)db.SUB=mapRaw.Substrate.map(r=>mrow(r,bmap('Substrate'),{id:'ID',Container:'Container','Recipe / mix':'Recipe / mix','Inoculated from':'Inoculated from','Source / Vendor':'Source / Vendor','Inoculation date':'Inoculation date',Location:'Location',Health:'Health',Generation:'Generation','Yield notes':'Yield notes',Notes:'Notes'}));
+  // ref sheets
+  const rl={Strains:r=>refs.strains=[...new Set([...DEF.strains,...r.map(x=>x['Strain / Variety Name']||'').filter(Boolean)])],Locations:r=>refs.locations=[...new Set([...DEF.locations,...r.map(x=>x.Location||'').filter(Boolean)])],Health:r=>refs.health=[...new Set([...DEF.health,...r.map(x=>x['Health Status']||'').filter(Boolean)])],Vendors:r=>refs.vendors=[...new Set([...DEF.vendors,...r.map(x=>x['Source / Vendor']||'').filter(Boolean)])],'Clone Sources':r=>refs.cloneSources=[...new Set([...DEF.cloneSources,...r.map(x=>x['Clone Source']||'').filter(Boolean)])]};
+  Object.entries(rl).forEach(([sn,fn])=>{if(wb.SheetNames.includes(sn))fn(XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:''}));});
+  if(wb.SheetNames.includes('Containers')){const rows=XLSX.utils.sheet_to_json(wb.Sheets['Containers'],{defval:''});refs.containersCUL=[...new Set([...DEF.containersCUL,...rows.map(r=>r.Culture||'').filter(Boolean)])];refs.containersSPO=[...new Set([...DEF.containersSPO,...rows.map(r=>r.Spore||'').filter(Boolean)])];refs.containersSPN=[...new Set([...DEF.containersSPN,...rows.map(r=>r.Spawn||'').filter(Boolean)])];refs.containersSUB=[...new Set([...DEF.containersSUB,...rows.map(r=>r.Substrate||'').filter(Boolean)])];}
+  fileLoaded=true;
+  document.getElementById('up-title').textContent='✓ File loaded';
+  document.getElementById('up-sub').textContent='Drop a new file to replace · save downloads your updated copy';
+  document.getElementById('up-loaded').textContent=`Loaded: ${db.SPO.length} spores · ${db.CUL.length} cultures · ${db.SPN.length} spawn · ${db.SUB.length} substrates`;
+  toast('✓ File loaded');
+  refresh();
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════
+function exportXLSX(){
+  const wb=XLSX.utils.book_new();
+  const sh=(name,headers,rows)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([headers,...rows]),name);
+  const spoH=['ID','Container','Source / Vendor','Inoculated from','Species','Location','Health','Generation','Notes'];
+  sh('Spores',spoH,db.SPO.map(r=>spoH.map(k=>k==='ID'?r.id:r[k]||'')));
+  const culH=['ID','Culture Type','AGR Type','Clone Source','Iso Letter','Container','Inoculated from','Source / Vendor','Strain / Species','Location','Health','Generation','Transfer #','Notes'];
+  sh('Cultures',culH,db.CUL.map(r=>[r.id,r.culType||'',r.agrTypeDetail||'',r.cloneSource||'',r.isoLetter||'',r.Container||'',r['Inoculated from']||'',r['Source / Vendor']||'',r.culStrain||'',r.Location||'',r.Health||'',r.Generation||'F0',r.tNum||0,r.Notes||'']));
+  const spnH=['ID','Container','Recipe','Inoculated with','Source / Vendor','Inoculation date','Location','Health','Generation','Notes'];
+  sh('Spawn',spnH,db.SPN.map(r=>spnH.map(k=>k==='ID'?r.id:r[k]||'')));
+  const subH=['ID','Container','Recipe / mix','Inoculated from','Source / Vendor','Inoculation date','Location','Health','Generation','Yield notes','Notes'];
+  sh('Substrate',subH,db.SUB.map(r=>subH.map(k=>k==='ID'?r.id:r[k]||'')));
+  sh('Strains',['Strain / Variety Name','Optional Latin Name','Source / Vendor'],refs.strains.map(s=>[s,'','']));
+  sh('Locations',['Location'],refs.locations.map(l=>[l]));
+  sh('Health',['Health Status'],refs.health.map(h=>[h]));
+  sh('Vendors',['Source / Vendor'],refs.vendors.map(v=>[v]));
+  sh('Clone Sources',['Clone Source'],refs.cloneSources.map(s=>[s]));
+  const mC=Math.max(refs.containersCUL.length,refs.containersSPO.length,refs.containersSPN.length,refs.containersSUB.length);
+  const cR=[];for(let i=0;i<mC;i++)cR.push([refs.containersCUL[i]||'',refs.containersSPO[i]||'',refs.containersSPN[i]||'',refs.containersSUB[i]||'']);
+  sh('Containers',['Culture','Spore','Spawn','Substrate'],cR);
+  const fn='LoM_Lab_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  XLSX.writeFile(wb,fn);
+  toast('✓ Saved as '+fn+' — this is your new working file');
+}
+
+// ═══════════════════════════════════════════════════════
+// UI — tabs, filters, table, expand, stats
+// ═══════════════════════════════════════════════════════
+function refresh(){ renderStats(); renderFilters(); renderTable(); }
+document.getElementById('srch').addEventListener('input',renderTable);
+document.getElementById('fl-loc').addEventListener('change',renderTable);
+document.getElementById('fl-hlth').addEventListener('change',renderTable);
+document.getElementById('show-arch').addEventListener('change',renderTable);
+document.getElementById('main-tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b&&b.classList.contains('tab'))switchMain(b.dataset.tab,b);});
+document.getElementById('subtabs').addEventListener('click',e=>{const b=e.target.closest('[data-sub]');if(b&&b.classList.contains('stab'))switchSub(b.dataset.sub,b);});
+document.getElementById('expand-btn').addEventListener('click',toggleExpand);
+document.getElementById('btn-load').addEventListener('click',()=>document.getElementById('file-in').click());
+document.getElementById('btn-save').addEventListener('click',exportXLSX);
+document.getElementById('btn-add').addEventListener('click',e=>openAdd(e));
+
+function switchMain(tab,el){
+  curTab=tab;curSub='ALL';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('subtabs-wrap').style.display=tab==='CUL'?'block':'none';
+  if(tab==='CUL'){document.querySelectorAll('.stab').forEach((t,i)=>t.classList.toggle('on',i===0));}
+  document.getElementById('srch').value='';
+  refresh();
+}
+function switchSub(sub,el){
+  curSub=sub;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  renderTable();
+}
+function toggleExpand(){
+  expandAll=!expandAll;
+  document.getElementById('expand-btn').textContent=expandAll?'⊟ Collapse all':'⊞ Expand all';
+  renderTable();
+}
+
+function hBadge(h){ if(!h)return''; const m={Normal:'bn','At Risk':'br','To the graveyard':'bg','Being Watched':'bw','Possibly Stalled':'bs',Contaminated:'bc'}; return `<span class="b ${m[h]||'bs'}">${h}</span>`; }
+function gBadge(g){ if(!g)return''; return `<span class="b ${g==='F0'?'bf0':'bgen'}">${g}</span>`; }
+function tBadge(n){ if(!n||n<1)return''; return `<span class="b bt">T${n}</span>`; }
+function tyBadge(t){ if(!t)return''; return `<span class="b bty">${t}</span>`; }
+
+function getCUL(){ return curSub==='ALL'?db.CUL:db.CUL.filter(r=>(r.culType||'AGR')===curSub); }
+
+function renderStats(){
+  const rows=curTab==='CUL'?getCUL():db[curTab];
+  const tot=rows.length,act=rows.filter(r=>!DEAD.includes(r.Location)).length,risk=rows.filter(r=>['At Risk','Being Watched','Possibly Stalled'].includes(r.Health)).length,grave=rows.filter(r=>DEAD.includes(r.Location)).length;
+  document.getElementById('stats').innerHTML=`<div class="stat"><div class="stn">${tot}</div><div class="stl">Total</div></div><div class="stat"><div class="stn" style="color:var(--lav)">${act}</div><div class="stl">Active</div></div><div class="stat"><div class="stn" style="color:var(--gold)">${risk}</div><div class="stl">Attention</div></div><div class="stat"><div class="stn" style="color:var(--muted)">${grave}</div><div class="stl">Archived</div></div>`;
+}
+
+function renderFilters(){
+  const rows=curTab==='CUL'?db.CUL:db[curTab];
+  const locs=[...new Set(rows.map(r=>r.Location).filter(Boolean))].sort();
+  const hths=[...new Set(rows.map(r=>r.Health).filter(Boolean))].sort();
+  const ls=document.getElementById('fl-loc'),hs=document.getElementById('fl-hlth');
+  const cl=ls.value,ch=hs.value;
+  ls.innerHTML='<option value="">All locations</option>'+locs.map(l=>`<option value="${h(l)}"${l===cl?' selected':''}>${h(l)}</option>`).join('');
+  hs.innerHTML='<option value="">All health</option>'+hths.map(v=>`<option value="${h(v)}"${v===ch?' selected':''}>${h(v)}</option>`).join('');
+}
+
+function renderTable(){
+  const arch=document.getElementById('show-arch').checked;
+  const q=(document.getElementById('srch').value||'').toLowerCase();
+  const lf=document.getElementById('fl-loc').value;
+  const hf=document.getElementById('fl-hlth').value;
+  const isCUL=curTab==='CUL';
+  const pool=isCUL?getCUL():db[curTab];
+  const rows=pool.filter(r=>{
+    if(!arch&&DEAD.includes(r.Location))return false;
+    if(q&&!Object.values(r).join(' ').toLowerCase().includes(q))return false;
+    if(lf&&r.Location!==lf)return false;
+    if(hf&&r.Health!==hf)return false;
+    return true;
+  });
+  document.getElementById('cnt').textContent=rows.length+' records';
+
+  // headers
+  if(isCUL) document.getElementById('thead').innerHTML='<tr><th>Actions</th><th>ID</th><th>Badges</th><th>Strain</th><th>Location</th><th>Health</th></tr>';
+  else if(curTab==='SPO') document.getElementById('thead').innerHTML='<tr><th>Actions</th><th>ID</th><th>Gen</th><th>Container</th><th>Origin</th><th>Species</th><th>Location</th><th>Health</th></tr>';
+  else document.getElementById('thead').innerHTML='<tr><th>Actions</th><th>ID</th><th>Gen</th><th>Container</th><th>Origin</th><th>Date</th><th>Location</th><th>Health</th></tr>';
+
+  if(!rows.length){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="8" class="empty">${fileLoaded?'No records match':'Load a file or add entries to get started'}</td></tr>`;
+    return;
+  }
+
+  function originCell(r){
+    const inv=r['Inoculated from']||r['Inoculated with']||'';
+    const vnd=r['Source / Vendor']||'';
+    if(inv)return`<td class="idc tdc">${h(inv)}</td>`;
+    if(vnd)return`<td class="tdc">${h(vnd)}</td>`;
+    return'<td></td>';
+  }
+
+  let html='';
+  rows.forEach(r=>{
+    // Use data attributes — NO inline function calls with IDs in them
+    const acts=`<td class="acell"><button class="btn btn-sm btn-g" data-action="edit" data-tab="${curTab}" data-id="${h(r.id)}">Edit</button> <button class="btn btn-sm" data-action="detail" data-tab="${curTab}" data-id="${h(r.id)}">Detail</button></td>`;
+    let cells='';
+    if(isCUL){
+      const b=tyBadge(r.culType||'AGR')+(r.agrTypeDetail==='clone'?'<span class="b" style="background:rgba(255,110,199,.1);color:var(--pink);border:1px solid rgba(255,110,199,.22)">CLN</span>':'')+gBadge(r.Generation)+tBadge(r.tNum);
+      cells=`<td class="idc">${h(r.id)}</td><td>${b}</td><td class="tdc">${h(r.culStrain||'')}</td><td class="tdc">${h(r.Location||'')}</td><td>${hBadge(r.Health)}</td>`;
+    } else if(curTab==='SPO'){
+      cells=`<td class="idc">${h(r.id)}</td><td>${gBadge(r.Generation)}</td><td>${h(r.Container||'')}</td>${originCell(r)}<td class="tdc">${h(r.Species||'')}</td><td class="tdc">${h(r.Location||'')}</td><td>${hBadge(r.Health)}</td>`;
+    } else {
+      cells=`<td class="idc">${h(r.id)}</td><td>${gBadge(r.Generation)}</td><td>${h(r.Container||'')}</td>${originCell(r)}<td>${h(r['Inoculation date']||'')}</td><td class="tdc">${h(r.Location||'')}</td><td>${hBadge(r.Health)}</td>`;
+    }
+    html+=`<tr class="dr">${acts}${cells}</tr>`;
+    if(expandAll){
+      const nc=isCUL?6:8;
+      html+=`<tr class="xrow"><td colspan="${nc}">${buildExpand(r,curTab)}</td></tr>`;
+    }
+  });
+  document.getElementById('tbody').innerHTML=html;
+}
+
+function buildExpand(r,tab){
+  const inv=r['Inoculated from']||r['Inoculated with']||'';
+  const vnd=r['Source / Vendor']||'';
+  const fields=[];
+  if(inv)fields.push({l:'Inoculated from/with',v:inv,mono:true});
+  if(vnd)fields.push({l:'Source / Vendor',v:vnd});
+  if(tab==='CUL'){if(r.Container)fields.push({l:'Container',v:r.Container});if(r.cloneSource)fields.push({l:'Clone source',v:r.cloneSource});}
+  if(tab==='SPN'&&r.Recipe)fields.push({l:'Recipe',v:r.Recipe});
+  if(tab==='SUB'){if(r['Recipe / mix'])fields.push({l:'Recipe',v:r['Recipe / mix']});if(r['Yield notes'])fields.push({l:'Yield notes',v:r['Yield notes']});}
+  fields.push({l:'Notes',v:r.Notes||'—',full:true});
+  return`<div class="xi">${fields.map(f=>`<div class="xf${f.full?' xfull':''}"><div class="xl">${f.l}</div><div class="xv${f.mono?' mono':''}">${h(f.v)}</div></div>`).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// DETAIL POPUP
+// ═══════════════════════════════════════════════════════
+let detailRec = null;
+
+function openDetail(ev,tab,id){
+  ev.stopPropagation();
+  const pool=tab==='CUL'?db.CUL:db[tab];
+  const r=pool.find(x=>x.id===id);
+  if(!r)return;
+  detailRec={tab,id};
+  document.getElementById('dp-id').textContent=r.id;
+  document.getElementById('dp-st').textContent=r.Species||r['Strain / Species']||r.culStrain||'';
+  let badges=tab==='CUL'?tyBadge(r.culType||'AGR')+(r.agrTypeDetail==='clone'?'<span class="b" style="background:rgba(255,110,199,.1);color:var(--pink);border:1px solid rgba(255,110,199,.22)">CLN</span>':'')+gBadge(r.Generation)+tBadge(r.tNum):gBadge(r.Generation);
+  if(r.Health)badges+=hBadge(r.Health);
+  document.getElementById('dp-badges').innerHTML=badges;
+  const df=(lbl,val,mono,full)=>{if(!val)return'';return`<div class="dpf${full?' full':''}"><div class="dpl">${lbl}</div><div class="dpv${mono?' mono':''}">${h(val)}</div></div>`;};
+  const dfE=(lbl,val)=>{const v=val||'';return`<div class="dpf"><div class="dpl">${lbl}</div><div class="dpv${!v?' mt':''}">${v?h(v):'—'}</div></div>`;};
+  const inv=r['Inoculated from']||r['Inoculated with']||'';
+  const vnd=r['Source / Vendor']||'';
+  let body='';
+  if(tab==='CUL'){
+    const chain=buildChain(r.id);
+    const chainHtml=chain.map((c,i)=>`${i>0?'<span class="dplarr"> → </span>':''}<span class="${c.id===r.id?'dplcur':'dplid'}" ${c.id!==r.id?`data-action="dp-jump" data-id="${h(c.id)}"`:''}>` + h(c.id) + '</span>').join('');
+    body=`<div class="dpg">${dfE('Container',r.Container)}${dfE('Location',r.Location)}${inv?df('Inoculated from',inv,true,true):''}${vnd?df('Source / Vendor',vnd,false,true):''}${r.cloneSource?df('Clone source',r.cloneSource,false,true):''}</div>${chain.length>1?`<div class="dpl" style="margin-bottom:4px">Lineage</div><div class="dplin">${chainHtml}</div>`:''}${r.Notes?`<div class="dpl" style="margin-bottom:3px">Notes</div><div class="dpnotes">${h(r.Notes)}</div>`:''}`;
+  } else if(tab==='SPO'){
+    body=`<div class="dpg">${dfE('Container',r.Container)}${dfE('Location',r.Location)}${inv?df('Inoculated from',inv,true,true):''}${vnd?df('Source / Vendor',vnd,false,true):''}</div>${r.Notes?`<div class="dpl" style="margin-bottom:3px">Notes</div><div class="dpnotes">${h(r.Notes)}</div>`:''}`;
+  } else if(tab==='SPN'){
+    body=`<div class="dpg">${dfE('Container',r.Container)}${dfE('Recipe',r.Recipe)}${inv?df('Inoculated with',inv,true,true):''}${vnd?df('Source / Vendor',vnd,false,true):''}${dfE('Date',r['Inoculation date'])}${dfE('Location',r.Location)}</div>${r.Notes?`<div class="dpl" style="margin-bottom:3px">Notes</div><div class="dpnotes">${h(r.Notes)}</div>`:''}`;
+  } else {
+    body=`<div class="dpg">${dfE('Container',r.Container)}${dfE('Recipe',r['Recipe / mix'])}${inv?df('Inoculated from',inv,true,true):''}${vnd?df('Source / Vendor',vnd,false,true):''}${dfE('Date',r['Inoculation date'])}${dfE('Location',r.Location)}${r['Yield notes']?df('Yield notes',r['Yield notes'],false,true):''}</div>${r.Notes?`<div class="dpl" style="margin-bottom:3px">Notes</div><div class="dpnotes">${h(r.Notes)}</div>`:''}`;
+  }
+  document.getElementById('dp-body').innerHTML=body;
+  // wire edit/close buttons via data-action (already delegated)
+  document.getElementById('dp-close').dataset.action='dp-close';
+  document.getElementById('dp-close2').dataset.action='dp-close';
+  document.getElementById('dp-edit').dataset.action='dp-edit';
+  document.getElementById('dbdrop').classList.add('on');
+  const pop=document.getElementById('dpop');pop.style.display='block';pop.classList.add('on');
+  requestAnimationFrame(()=>{
+    const pw=pop.offsetWidth||310,ph=pop.offsetHeight||200,vw=window.innerWidth,vh=window.innerHeight;
+    let x=ev.clientX+12,y=ev.clientY+12;
+    if(x+pw>vw-8)x=ev.clientX-pw-12;
+    if(y+ph>vh-8)y=Math.max(8,vh-ph-8);
+    if(x<8)x=8;
+    pop.style.left=x+'px';pop.style.top=y+'px';
+  });
+}
+function closeDetail(){
+  document.getElementById('dpop').classList.remove('on');document.getElementById('dpop').style.display='none';
+  document.getElementById('dbdrop').classList.remove('on');
+  detailRec=null;
+}
+function jumpTo(id){
+  const f=getRow(id);if(!f)return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===f.tab));
+  curTab=f.tab;
+  document.getElementById('subtabs-wrap').style.display=f.tab==='CUL'?'block':'none';
+  if(f.tab==='CUL'){curSub='ALL';document.querySelectorAll('.stab').forEach((t,i)=>t.classList.toggle('on',i===0));}
+  document.getElementById('srch').value=id;
+  refresh();toast('↩ Jumped to '+id);
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL — open add / open edit
+// ═══════════════════════════════════════════════════════
+function seedFS(tab,entry){
+  FS={};
+  originMode='inventory';
+  if(!entry)return;
+  const map={
+    CUL:{'f-strain':entry.culStrain,'f-inoc':entry['Inoculated from'],'f-vend':entry['Source / Vendor'],'f-con':entry.Container,'f-loc':entry.Location,'f-health':entry.Health,'f-gen':entry.Generation||'F0','f-tnum':String(entry.tNum||0),'f-iso':entry.isoLetter,'f-clone':entry.cloneSource,'f-notes':entry.Notes},
+    SPO:{'f-con':entry.Container,'f-inoc':entry['Inoculated from'],'f-vend':entry['Source / Vendor'],'f-sp':entry.Species,'f-loc':entry.Location,'f-health':entry.Health,'f-gen':entry.Generation||'F0','f-notes':entry.Notes},
+    SPN:{'f-con':entry.Container,'f-inoc':entry['Inoculated with'],'f-vend':entry['Source / Vendor'],'f-rec':entry.Recipe,'f-date':entry['Inoculation date'],'f-loc':entry.Location,'f-health':entry.Health,'f-gen':entry.Generation||'F0','f-notes':entry.Notes},
+    SUB:{'f-con':entry.Container,'f-inoc':entry['Inoculated from'],'f-vend':entry['Source / Vendor'],'f-rec':entry['Recipe / mix'],'f-date':entry['Inoculation date'],'f-loc':entry.Location,'f-health':entry.Health,'f-gen':entry.Generation||'F0','f-yield':entry['Yield notes'],'f-notes':entry.Notes}
+  };
+  Object.entries(map[tab]||{}).forEach(([k,v])=>{ FS[k]=String(v||''); });
+  originMode=FS['f-inoc']?'inventory':FS['f-vend']?'vendor':'inventory';
+}
+
+function openAdd(ev){
+  editObj=null; editTabKey=curTab;
+  culType='AGR'; agrDet='new';
+  seedFS(curTab,null);
+  const lbl=curTab==='CUL'?'Culture':curTab==='SPO'?'Spore':curTab==='SPN'?'Spawn':'Substrate';
+  document.getElementById('modal-title').textContent='Add '+lbl;
+  document.getElementById('form-fields').innerHTML=buildForm(null,curTab);
+  showModal(ev);
+}
+
+function openEdit(tab,id,ev){
+  const pool=tab==='CUL'?db.CUL:db[tab];
+  const entry=pool.find(r=>r.id===id);
+  if(!entry){ console.warn('openEdit: no record found for',tab,id); return; }
+  editObj=entry;    // direct reference — mutations go straight to db
+  editTabKey=tab;
+  if(tab==='CUL'){ culType=entry.culType||'AGR'; agrDet=entry.agrTypeDetail||'new'; }
+  seedFS(tab,entry);
+  document.getElementById('modal-title').textContent='Edit '+entry.id;
+  document.getElementById('form-fields').innerHTML=buildForm(entry,tab);
+  requestAnimationFrame(cSyncAll);  // sync combo displays after DOM render
+  showModal(ev);
+}
+
+function showModal(ev){
+  const wrap=document.getElementById('modal'),box=document.getElementById('modal-box');
+  wrap.classList.add('on');
+  requestAnimationFrame(()=>posModal(box,ev));
+}
+
+// ── Form builders ──────────────────────────────────────
+function fi(id,label,content,full=false){ return `<div class="fi${full?' full':''}"><label>${label}</label>${content}</div>`; }
+function fCombo(id,label,rk,full=false){ return fi(id,label,mkCombo(id,rk),full); }
+function fLineage(id,label,srcs,full=true){ return fi(id,label,mkLineage(id,srcs),full); }
+function fText(id,label,full=false){ const v=h(FS[id]||''); return fi(id,label,`<textarea class="pi" id="pi-${id}" oninput="FS['${id}']=this.value">${v}</textarea>`,full); }
+function fDate(id,label){ return fi(id,label,`<input type="date" class="pi" id="pi-${id}" value="${h(FS[id]||'')}" onchange="FS['${id}']=this.value">`); }
+function fGen(id){ return `<div class="fi"><label>Generation</label><input type="text" class="pi" id="pi-${id}" value="${h(FS[id]||'F0')}" placeholder="F0" oninput="FS['${id}']=this.value"><div class="fhint" id="gh-${id}"></div></div>`; }
+
+function fHealth(){
+  const cur=FS['f-health']||'';
+  const pills=HEALTH.map(hv=>`<button type="button" class="hpill${cur===hv?' on':''}" data-action="health" data-val="${h(hv)}">${h(hv)}</button>`).join('');
+  return `<div class="fi full"><label>Health status</label><div class="hpills">${pills}</div></div>`;
+}
+function setHealth(val){ FS['f-health']=val; document.querySelectorAll('.hpill').forEach(p=>p.classList.toggle('on',p.dataset.val===val)); }
+
+function fOrigin(srcs,inocLabel){
+  const inv=originMode==='inventory';
+  return `<div class="oblock full">
+    <div style="font-family:var(--fh);font-size:10px;color:var(--lav);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Origin</div>
+    <div class="otog">
+      <button type="button" class="obtn${inv?' on':''}" data-action="origin" data-mode="inventory">📦 From inventory</button>
+      <button type="button" class="obtn${!inv?' on':''}" data-action="origin" data-mode="vendor">🛒 From vendor / external</button>
+    </div>
+    <div class="opanel${inv?' on':''}" data-panel="inventory">
+      ${fi('f-inoc',inocLabel,mkLineage('f-inoc',srcs),'full')}
+    </div>
+    <div class="opanel${!inv?' on':''}" data-panel="vendor">
+      ${fi('f-vend','Source / Vendor',mkCombo('f-vend','vendors'),'full')}
+    </div>
+  </div>`;
+}
+function setOrigin(mode){
+  originMode=mode;
+  document.querySelectorAll('.obtn').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));
+  document.querySelectorAll('.opanel').forEach(p=>p.classList.toggle('on',p.dataset.panel===mode));
+}
+
+function buildForm(entry,tab){ if(tab==='CUL')return buildCUL(entry); if(tab==='SPO')return buildSPO(); if(tab==='SPN')return buildSPN(); return buildSUB(); }
+
+function buildSPO(){ return [fCombo('f-con','Container','containersSPO'),fCombo('f-sp','Species','strains',true),fOrigin(['SPO','CUL','AGR','LC'],'Inoculated from'),fCombo('f-loc','Location','locations'),fHealth(),fGen('f-gen'),fText('f-notes','Notes',true)].join(''); }
+function buildSPN(){ return [fCombo('f-con','Container','containersSPN'),fCombo('f-rec','Recipe','recipesSPN'),fOrigin(['CUL','AGR','LC','LI'],'Inoculated with'),fDate('f-date','Inoculation date'),fCombo('f-loc','Location','locations'),fHealth(),fGen('f-gen'),fText('f-notes','Notes',true)].join(''); }
+function buildSUB(){ return [fCombo('f-con','Container','containersSUB'),fCombo('f-rec','Recipe / mix','recipesSUB'),fOrigin(['SPN'],'Inoculated from'),fDate('f-date','Inoculation date'),fCombo('f-loc','Location','locations'),fHealth(),fGen('f-gen'),fText('f-yield','Yield notes'),fText('f-notes','Notes',true)].join(''); }
+
+function buildCUL(entry){
+  const ct=culType||'AGR', det=agrDet||'new';
+  const typeRow=`<div class="trow"><span class="trow-lbl">Culture type</span>
+    <button type="button" class="tpill${ct==='AGR'?' on':''}" data-action="cultype" data-t="AGR">AGR · Agar</button>
+    <button type="button" class="tpill${ct==='LC'?' on':''}" data-action="cultype" data-t="LC">LC · Liquid Culture</button>
+    <button type="button" class="tpill${ct==='LI'?' on':''}" data-action="cultype" data-t="LI">LI · Liquid Inoculant</button>
+  </div>`;
+  const detRow=ct==='AGR'?`<div class="trow" id="det-row"><span class="trow-lbl">Plate type</span>
+    <button type="button" class="tpill${det==='new'?' on':''}" data-action="agrdet" data-d="new">New plate</button>
+    <button type="button" class="tpill${det==='transfer'?' on':''}" data-action="agrdet" data-d="transfer">Transfer</button>
+    <button type="button" class="tpill${det==='clone'?' on':''}" data-action="agrdet" data-d="clone">Clone</button>
+  </div>`:'';
+  const idPrev=`<div class="fi full"><label>ID (auto-generated)</label><div class="idprev" id="id-prev">${entry?entry.id:'Will be assigned on save'}</div></div>`;
+  const lSrc=ct==='LI'?['AGR','LC']:ct==='LC'?['AGR','LC']:['SPO','AGR','LC','LI'];
+  const tNumF=ct==='AGR'?`<div class="fi"><label>Transfer # (T)</label><input type="number" class="pi" id="pi-f-tnum" min="0" value="${h(FS['f-tnum']||'0')}" oninput="FS['f-tnum']=this.value;updPrev()"><div class="fhint" id="th-f-tnum">0 = first plate, 1+ = agar transfer</div></div>`:'';
+  const isoF=ct==='AGR'&&det!=='clone'?`<div class="fi"><label>Isolation letter</label><input type="text" class="pi" id="pi-f-iso" maxlength="2" value="${h(FS['f-iso']||'')}" placeholder="a, b …" oninput="FS['f-iso']=this.value;updPrev()"></div>`:'';
+  const cloneF=det==='clone'?fi('f-clone','Clone source',mkCombo('f-clone','cloneSources'),true):'';
+  return [typeRow,detRow,idPrev,'<div class="sdiv"></div>',fCombo('f-strain','Strain / Species','strains',true),fOrigin(lSrc,'Inoculated from'),tNumF,isoF,cloneF,fCombo('f-con','Container','containersCUL'),fCombo('f-loc','Location','locations'),fHealth(),fGen('f-gen'),fText('f-notes','Notes',true)].join('');
+}
+
+function setCulType(t,el){
+  culType=t;
+  document.querySelectorAll('.trow:first-child .tpill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('form-fields').innerHTML=buildCUL(editObj);
+  requestAnimationFrame(cSyncAll);
+  updPrev();
+}
+function setAgrDet(d,el){
+  agrDet=d;
+  document.querySelectorAll('#det-row .tpill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('form-fields').innerHTML=buildCUL(editObj);
+  requestAnimationFrame(cSyncAll);
+  updPrev();
+}
+function updPrev(){
+  const prev=document.getElementById('id-prev');
+  if(!prev||editObj)return;
+  const pid=(FS['f-inoc']||'').split(' — ')[0].trim();
+  const iso=(FS['f-iso']||'').trim().toLowerCase();
+  let s='';
+  if(culType==='LC'&&pid.startsWith('LC-'))s=suggestLC(pid);
+  else if(culType==='LC')s=nextCUL('LC');
+  else if(culType==='LI')s=nextCUL('LI');
+  else s=nextCUL('AGR')+(iso||'');
+  prev.textContent=s;
+}
+
+// ── Discard guard ──────────────────────────────────────
+function reqClose(){
+  const dp=document.getElementById('discpop');
+  dp.style.display='block';
+  requestAnimationFrame(()=>{ dp.style.top=Math.max(16,(window.innerHeight-dp.offsetHeight)/2)+'px'; });
+}
+function doDiscard(){
+  document.getElementById('discpop').style.display='none';
+  document.getElementById('modal').classList.remove('on');
+  editObj=null; editTabKey='';
+}
+document.getElementById('disc-yes').addEventListener('click',doDiscard);
+document.getElementById('disc-no').addEventListener('click',()=>document.getElementById('discpop').style.display='none');
+document.getElementById('modal-close').addEventListener('click',reqClose);
+document.getElementById('modal-cancel').addEventListener('click',reqClose);
+document.getElementById('modal-save').addEventListener('click',saveEntry);
+
+// ═══════════════════════════════════════════════════════
+// SAVE — reads from FS, writes to editObj in-place (edit)
+// or pushes new record (add)
+// ═══════════════════════════════════════════════════════
+function saveEntry(){
+  const tab=editTabKey||curTab;
+  let data={};
+
+  if(tab==='CUL'){
+    // Read culture type and detail from active pills
+    const ctEl=document.querySelector('.trow:first-child .tpill.on');
+    const ct=ctEl?ctEl.dataset.t:culType;
+    const dtEl=document.querySelector('#det-row .tpill.on');
+    const dt=dtEl?dtEl.dataset.d:agrDet;
+    data={culType:ct,agrTypeDetail:dt,culStrain:FS['f-strain']||'','Inoculated from':FS['f-inoc']||'','Source / Vendor':FS['f-vend']||'',Container:FS['f-con']||'',Location:FS['f-loc']||'',Health:FS['f-health']||'',Generation:FS['f-gen']||'F0',tNum:parseInt(FS['f-tnum']||0),isoLetter:FS['f-iso']||'',cloneSource:FS['f-clone']||'',Notes:FS['f-notes']||''};
+  } else if(tab==='SPO'){
+    data={Container:FS['f-con']||'','Inoculated from':FS['f-inoc']||'','Source / Vendor':FS['f-vend']||'',Species:FS['f-sp']||'',Location:FS['f-loc']||'',Health:FS['f-health']||'',Generation:FS['f-gen']||'F0',Notes:FS['f-notes']||''};
+  } else if(tab==='SPN'){
+    data={Container:FS['f-con']||'','Inoculated with':FS['f-inoc']||'','Source / Vendor':FS['f-vend']||'',Recipe:FS['f-rec']||'','Inoculation date':FS['f-date']||'',Location:FS['f-loc']||'',Health:FS['f-health']||'',Generation:FS['f-gen']||'F0',Notes:FS['f-notes']||''};
+  } else {
+    data={Container:FS['f-con']||'','Inoculated from':FS['f-inoc']||'','Source / Vendor':FS['f-vend']||'','Recipe / mix':FS['f-rec']||'','Inoculation date':FS['f-date']||'',Location:FS['f-loc']||'',Health:FS['f-health']||'',Generation:FS['f-gen']||'F0','Yield notes':FS['f-yield']||'',Notes:FS['f-notes']||''};
+  }
+
+  // Check for new ref values
+  const chk=tab==='SPO'?{'f-con':'containersSPO','f-sp':'strains','f-vend':'vendors','f-loc':'locations'}
+    :tab==='CUL'?{'f-strain':'strains','f-con':'containersCUL','f-vend':'vendors','f-loc':'locations','f-clone':'cloneSources'}
+    :tab==='SPN'?{'f-con':'containersSPN','f-rec':'recipesSPN','f-vend':'vendors','f-loc':'locations'}
+    :{'f-con':'containersSUB','f-rec':'recipesSUB','f-vend':'vendors','f-loc':'locations'};
+  const newVals=[];
+  Object.entries(chk).forEach(([fid,rk])=>{ const v=FS[fid]||''; if(v&&refs[rk]&&!refs[rk].find(x=>x.toLowerCase()===v.toLowerCase())) newVals.push({val:v,refKey:rk,label:fid.replace('f-','')}); });
+
+  if(newVals.length){
+    pendingVals=newVals; pendingData={data,tab};
+    document.getElementById('conf-msg').innerHTML='Add these new values to your reference lists?<br><br>'+newVals.map(n=>`<b style="color:var(--gold)">"${h(n.val)}"</b> → ${n.label} list`).join('<br>');
+    document.getElementById('conf-modal').classList.add('on');
+    requestAnimationFrame(()=>posModal(document.getElementById('conf-box'),lastEv));
+    return;
+  }
+  commitSave(data,tab);
+}
+
+document.getElementById('conf-yes').addEventListener('click',()=>{
+  pendingVals.forEach(n=>{ if(refs[n.refKey]&&!refs[n.refKey].find(x=>x.toLowerCase()===n.val.toLowerCase())) refs[n.refKey].push(n.val); });
+  document.getElementById('conf-modal').classList.remove('on');
+  commitSave(pendingData.data,pendingData.tab);
+});
+document.getElementById('conf-skip').addEventListener('click',()=>{
+  document.getElementById('conf-modal').classList.remove('on');
+  commitSave(pendingData.data,pendingData.tab);
+});
+
+function commitSave(data,tab){
+  if(editObj){
+    // EDIT: mutate the db object directly — works regardless of any filter/sort
+    const savedId=editObj.id;
+    // Clear old keys, write new data
+    Object.keys(editObj).forEach(k=>delete editObj[k]);
+    Object.assign(editObj, data);
+    editObj.id=savedId;  // id never changes on edit
+    toast('✓ '+savedId+' updated');
+  } else {
+    // ADD: generate id and push
+    let id='';
+    if(tab==='CUL'){
+      const ct=data.culType||'AGR';
+      const pid=(data['Inoculated from']||'').split(' — ')[0].trim();
+      const iso=data.isoLetter||'';
+      if(ct==='LC'&&pid.startsWith('LC-'))id=suggestLC(pid);
+      else if(ct==='LC')id=nextCUL('LC');
+      else if(ct==='LI')id=nextCUL('LI');
+      else id=nextCUL('AGR')+(iso?iso.toLowerCase():'');
+    } else {
+      id=nextId(tab);
+    }
+    data.id=id;
+    if(tab==='CUL')db.CUL.push(data);
+    else db[tab].push(data);
+    toast('✓ '+id+' added');
+  }
+
+  document.getElementById('modal').classList.remove('on');
+  editObj=null; editTabKey='';
+  refresh();  // re-render everything from db
+}
+</script>
+</body>
+</html>
